@@ -10,22 +10,52 @@
 
       <!-- 桌面端导航链接 -->
       <div class="nav-links">
-        <a href="#" class="nav-link">首页</a>
-        <a href="#" class="nav-link">下载</a>
-        <a href="#" class="nav-link">文档</a>
-        <a href="#" class="nav-link">社区</a>
+        <router-link to="/" class="nav-link">{{ $t('nav.home') }}</router-link>
+        <router-link to="/download" class="nav-link">{{ $t('nav.download') }}</router-link>
+        <a href="https://menthamc.github.io/docs/" class="nav-link" target="_blank" rel="noopener noreferrer">{{
+          $t('nav.docs') }}</a>
+        <router-link to="/community" class="nav-link">{{ $t('nav.community') }}</router-link>
       </div>
 
       <!-- 右侧操作区 -->
       <div class="nav-actions">
-        <ThemeToggle />
-        <button class="game-btn">
-          立即开始
-        </button>
+        <div class="language-selector" @click="toggleLanguageMenu" :class="{ active: isLanguageMenuOpen }">
+          <div class="language-trigger">
+            <svg class="translate-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="m5 8 6 6" />
+              <path d="m4 14 6-6 2-3" />
+              <path d="M2 5h12" />
+              <path d="M7 2h1" />
+              <path d="m22 22-5-10-5 10" />
+              <path d="M14 18h6" />
+            </svg>
+            <span class="current-language">{{ currentLanguageText }}</span>
+          </div>
+          <div class="language-menu" :class="{ show: isLanguageMenuOpen }">
+            <div class="language-option" :class="{ active: currentLanguage === 'en-US' }"
+              @click.stop="selectLanguage('en-US')">
+              <span class="language-flag">🇺🇸</span>
+              <span>{{ $t('nav.language.english') }}</span>
+              <svg v-if="currentLanguage === 'en-US'" class="check-icon" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2">
+                <polyline points="20,6 9,17 4,12" />
+              </svg>
+            </div>
+            <div class="language-option" :class="{ active: currentLanguage === 'zh-CN' }"
+              @click.stop="selectLanguage('zh-CN')">
+              <span class="language-flag">🇨🇳</span>
+              <span>{{ $t('nav.language.chinese') }}</span>
+              <svg v-if="currentLanguage === 'zh-CN'" class="check-icon" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2">
+                <polyline points="20,6 9,17 4,12" />
+              </svg>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- 移动端菜单按钮 -->
-      <button class="mobile-menu-btn" @click="toggleMobileMenu">
+      <button class="mobile-menu-btn" :class="{ 'menu-open': isMobileMenuOpen }" @click="toggleMobileMenu">
         <span class="hamburger-line"></span>
         <span class="hamburger-line"></span>
         <span class="hamburger-line"></span>
@@ -35,34 +65,132 @@
     <!-- 移动端菜单 -->
     <div class="mobile-menu" :class="{ active: isMobileMenuOpen }">
       <div class="mobile-nav-links">
-        <a href="#" class="mobile-nav-link">首页</a>
-        <a href="#" class="mobile-nav-link">下载</a>
-        <a href="#" class="mobile-nav-link">文档</a>
-        <a href="#" class="mobile-nav-link">社区</a>
+        <router-link to="/" class="mobile-nav-link" @click="closeMobileMenu">{{ $t('nav.home') }}</router-link>
+        <router-link to="/download" class="mobile-nav-link" @click="closeMobileMenu">{{ $t('nav.download')
+        }}</router-link>
+        <a href="https://menthamc.github.io/docs/" class="mobile-nav-link" target="_blank" rel="noopener noreferrer">{{
+          $t('nav.docs') }}</a>
+        <router-link to="/community" class="mobile-nav-link" @click="closeMobileMenu">{{ $t('nav.community')
+          }}</router-link>
       </div>
       <div class="mobile-actions">
-        <ThemeToggle />
-        <button class="mobile-game-btn">
-          立即开始
-        </button>
+        <div class="mobile-language-selector">
+          <div class="mobile-language-option" :class="{ active: currentLanguage === 'en-US' }"
+            @click="selectLanguage('en-US')">
+            <span class="language-flag">🇺🇸</span>
+            <span>{{ $t('nav.language.english') }}</span>
+            <svg v-if="currentLanguage === 'en-US'" class="check-icon" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2">
+              <polyline points="20,6 9,17 4,12" />
+            </svg>
+          </div>
+          <div class="mobile-language-option" :class="{ active: currentLanguage === 'zh-CN' }"
+            @click="selectLanguage('zh-CN')">
+            <span class="language-flag">🇨🇳</span>
+            <span>{{ $t('nav.language.chinese') }}</span>
+            <svg v-if="currentLanguage === 'zh-CN'" class="check-icon" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2">
+              <polyline points="20,6 9,17 4,12" />
+            </svg>
+          </div>
+        </div>
       </div>
     </div>
   </nav>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import ThemeToggle from './ThemeToggle.vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { getCurrentLanguage, switchLanguage } from '../locales'
+import { LANGUAGE_CONFIG, NAVIGATION_LINKS } from '../utils/constants'
 
+const { t } = useI18n()
+
+// 响应式状态
 const isMobileMenuOpen = ref(false)
+const isLanguageMenuOpen = ref(false)
+const currentLanguage = ref(getCurrentLanguage())
 
+// Emits定义
+const emit = defineEmits<{
+  languageChange: [{ language: string; previousLanguage: string }]
+  mobileMenuToggle: [isOpen: boolean]
+}>()
+
+// 导航链接
+const navigationLinks = computed(() =>
+  NAVIGATION_LINKS.map(link => ({
+    ...link,
+    label: t(`nav.${link.key}`)
+  }))
+)
+
+// 可用语言
+const availableLanguages = computed(() =>
+  Object.entries(LANGUAGE_CONFIG).map(([code, config]) => ({
+    code,
+    name: config.name,
+    flag: config.flag
+  }))
+)
+
+// 当前语言显示文本
+const currentLanguageText = computed(() => {
+  const langKey = currentLanguage.value as keyof typeof LANGUAGE_CONFIG
+  const config = LANGUAGE_CONFIG[langKey]
+  return config?.name || LANGUAGE_CONFIG['zh-CN'].name
+})
+
+// 事件处理函数
 const toggleMobileMenu = () => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value
+  emit('mobileMenuToggle', isMobileMenuOpen.value)
 }
+
+const closeMobileMenu = () => {
+  isMobileMenuOpen.value = false
+  emit('mobileMenuToggle', false)
+}
+
+const toggleLanguageMenu = () => {
+  isLanguageMenuOpen.value = !isLanguageMenuOpen.value
+}
+
+const selectLanguage = (lang: 'zh-CN' | 'en-US') => {
+  const previousLanguage = currentLanguage.value
+  currentLanguage.value = lang
+  switchLanguage(lang)
+  isLanguageMenuOpen.value = false
+
+  emit('languageChange', {
+    language: lang,
+    previousLanguage
+  })
+
+  console.log('切换语言到:', lang)
+}
+
+// 点击外部处理函数
+const handleClickOutside = (e: Event) => {
+  const target = e.target as HTMLElement
+  if (!target.closest('.language-selector')) {
+    isLanguageMenuOpen.value = false
+  }
+}
+
+// 生命周期
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 </script>
 
 <style scoped>
-/* 导航栏基础样式 - 浅色模式 */
+/* 导航栏基础样式 */
 .navbar {
   position: fixed;
   top: 20px;
@@ -76,17 +204,29 @@ const toggleMobileMenu = () => {
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   animation: slideInFromTop 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   opacity: 0;
-  transform: translateX(-50%) translateY(-30px);
-  
-  /* 浅色模式样式 */
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.95) 0%, 
-    rgba(248, 250, 252, 0.9) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.08),
-    0 4px 16px rgba(0, 0, 0, 0.04),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+
+  /* 深色模式样式 */
+  background: linear-gradient(135deg,
+      rgba(17, 24, 39, 0.95) 0%,
+      rgba(31, 41, 55, 0.9) 50%,
+      rgba(55, 65, 81, 0.85) 100%);
+  border: 1px solid rgba(75, 85, 99, 0.4);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 4px 16px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.navbar:hover {
+  background: linear-gradient(135deg,
+      rgba(17, 24, 39, 0.98) 0%,
+      rgba(31, 41, 55, 0.95) 50%,
+      rgba(55, 65, 81, 0.9) 100%);
+  border-color: rgba(75, 85, 99, 0.6);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.5),
+    0 6px 20px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 /* 导航栏入场动画 */
@@ -95,60 +235,11 @@ const toggleMobileMenu = () => {
     opacity: 0;
     transform: translateX(-50%) translateY(-30px) scale(0.95);
   }
+
   100% {
     opacity: 1;
     transform: translateX(-50%) translateY(0) scale(1);
   }
-}
-
-/* 深色模式 */
-:global(html.dark) .navbar {
-  background: linear-gradient(135deg, 
-    rgba(17, 24, 39, 0.95) 0%, 
-    rgba(31, 41, 55, 0.9) 50%,
-    rgba(55, 65, 81, 0.85) 100%) !important;
-  border: 1px solid rgba(75, 85, 99, 0.4) !important;
-  box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.4),
-    0 4px 16px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
-}
-
-/* 浅色模式 */
-:global(html.light) .navbar {
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.95) 0%, 
-    rgba(248, 250, 252, 0.9) 100%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
-  box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.08),
-    0 4px 16px rgba(0, 0, 0, 0.04),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
-}
-
-/* 浅色模式悬停效果 */
-:global(html.light) .navbar:hover {
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.98) 0%, 
-    rgba(248, 250, 252, 0.95) 100%) !important;
-  border-color: rgba(255, 255, 255, 0.5) !important;
-  box-shadow: 
-    0 12px 40px rgba(0, 0, 0, 0.12),
-    0 6px 20px rgba(0, 0, 0, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
-}
-
-/* 深色模式悬停效果 */
-:global(html.dark) .navbar:hover {
-  background: linear-gradient(135deg, 
-    rgba(17, 24, 39, 0.98) 0%, 
-    rgba(31, 41, 55, 0.95) 50%,
-    rgba(55, 65, 81, 0.9) 100%) !important;
-  border-color: rgba(75, 85, 99, 0.6) !important;
-  box-shadow: 
-    0 12px 40px rgba(0, 0, 0, 0.5),
-    0 6px 20px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
 }
 
 .nav-container {
@@ -181,7 +272,7 @@ const toggleMobileMenu = () => {
 .logo-text {
   font-size: 24px;
   font-weight: 700;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -193,12 +284,12 @@ const toggleMobileMenu = () => {
   filter: brightness(1.1);
 }
 
-/* Logo动画 */
 @keyframes logoFadeIn {
   0% {
     opacity: 0;
     transform: translateY(10px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
@@ -213,7 +304,7 @@ const toggleMobileMenu = () => {
 }
 
 .nav-link {
-  color: #6b7280;
+  color: #d1d5db;
   text-decoration: none;
   font-weight: 500;
   font-size: 18px;
@@ -224,13 +315,24 @@ const toggleMobileMenu = () => {
   transform: translateY(20px);
 }
 
-.nav-link:nth-child(1) { animation-delay: 0.4s; }
-.nav-link:nth-child(2) { animation-delay: 0.5s; }
-.nav-link:nth-child(3) { animation-delay: 0.6s; }
-.nav-link:nth-child(4) { animation-delay: 0.7s; }
+.nav-link:nth-child(1) {
+  animation-delay: 0.4s;
+}
+
+.nav-link:nth-child(2) {
+  animation-delay: 0.5s;
+}
+
+.nav-link:nth-child(3) {
+  animation-delay: 0.6s;
+}
+
+.nav-link:nth-child(4) {
+  animation-delay: 0.7s;
+}
 
 .nav-link:hover {
-  color: #1f2937;
+  color: #ffffff;
   transform: translateY(-2px);
 }
 
@@ -241,93 +343,153 @@ const toggleMobileMenu = () => {
   left: 50%;
   width: 0;
   height: 2px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   transform: translateX(-50%);
 }
 
-.nav-link:hover::after {
+.nav-link:hover::after,
+.nav-link.router-link-active::after {
   width: 100%;
 }
 
-/* 导航链接动画 */
+.nav-link.router-link-active {
+  color: #ffffff;
+}
+
 @keyframes linkSlideIn {
   0% {
     opacity: 0;
     transform: translateY(20px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
-:global(.dark) .nav-link {
-  color: #d1d5db;
-}
-
-:global(.dark) .nav-link:hover {
-  color: #ffffff;
-}
-
 /* 右侧操作区 */
 .nav-actions {
   display: flex;
   align-items: center;
-  gap: 16px;
   height: 40px;
 }
 
-/* 确保所有子组件垂直居中对齐 */
-.nav-actions > * {
-  display: flex;
-  align-items: center;
-  height: 100%;
-}
-
-.game-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
+/* 语言选择器 */
+.language-selector {
   position: relative;
-  overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
   animation: buttonSlideIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.8s forwards;
   opacity: 0;
   transform: translateX(30px);
 }
 
-.game-btn:hover {
-  transform: translateY(-3px) scale(1.05);
-  box-shadow: 0 12px 30px rgba(102, 126, 234, 0.5);
+.language-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: rgba(75, 85, 99, 0.2);
+  border: 1px solid rgba(75, 85, 99, 0.3);
+  border-radius: 12px;
+  color: #d1d5db;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
 }
 
-.game-btn::before {
-  content: '';
+.language-selector:hover .language-trigger {
+  background: rgba(75, 85, 99, 0.3);
+  border-color: rgba(75, 85, 99, 0.5);
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+.language-selector.active .language-trigger {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #10b981;
+}
+
+.translate-icon {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2;
+}
+
+.current-language {
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.language-menu {
   position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transition: left 0.6s;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 180px;
+  background: linear-gradient(135deg,
+      rgba(17, 24, 39, 0.98) 0%,
+      rgba(31, 41, 55, 0.95) 50%,
+      rgba(55, 65, 81, 0.9) 100%);
+  border: 1px solid rgba(75, 85, 99, 0.4);
+  border-radius: 12px;
+  padding: 8px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px) scale(0.95);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(15px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  z-index: 1000;
 }
 
-.game-btn:hover::before {
-  left: 100%;
+.language-menu.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
 }
 
-/* 按钮动画 */
+.language-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: #d1d5db;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.language-option:hover {
+  background: rgba(75, 85, 99, 0.3);
+  color: #ffffff;
+}
+
+.language-option.active {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.language-flag {
+  font-size: 16px;
+}
+
+.check-icon {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  margin-left: auto;
+}
+
 @keyframes buttonSlideIn {
   0% {
     opacity: 0;
     transform: translateX(30px);
   }
+
   100% {
     opacity: 1;
     transform: translateX(0);
@@ -346,34 +508,58 @@ const toggleMobileMenu = () => {
   border: none;
   cursor: pointer;
   gap: 4px;
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mobile-menu-btn:hover {
+  transform: scale(1.1);
+}
+
+.mobile-menu-btn:active {
+  transform: scale(0.95);
 }
 
 .hamburger-line {
   width: 20px;
   height: 2px;
-  background: #6b7280;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #d1d5db;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   transform-origin: center;
+  border-radius: 1px;
 }
 
 .mobile-menu-btn:hover .hamburger-line {
-  background: #1f2937;
+  background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
 }
 
 .mobile-menu-btn:hover .hamburger-line:nth-child(1) {
-  transform: translateY(-1px);
+  transform: translateY(-1px) rotate(2deg);
+}
+
+.mobile-menu-btn:hover .hamburger-line:nth-child(2) {
+  transform: scaleX(1.1);
 }
 
 .mobile-menu-btn:hover .hamburger-line:nth-child(3) {
-  transform: translateY(1px);
+  transform: translateY(1px) rotate(-2deg);
 }
 
-:global(html.dark) .hamburger-line {
-  background: #d1d5db;
+/* 菜单打开时的动画 - 通过Vue的class绑定控制 */
+.mobile-menu-btn.menu-open .hamburger-line:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+  background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
 }
 
-:global(html.light) .hamburger-line {
-  background: #6b7280;
+.mobile-menu-btn.menu-open .hamburger-line:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+.mobile-menu-btn.menu-open .hamburger-line:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+  background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
 }
 
 /* 移动端菜单 */
@@ -390,50 +576,22 @@ const toggleMobileMenu = () => {
   opacity: 0;
   transform: translateY(-20px) scale(0.95);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  
-  /* 浅色模式移动端菜单 */
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.98) 0%, 
-    rgba(248, 250, 252, 0.95) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 
-    0 10px 40px rgba(0, 0, 0, 0.15),
-    0 6px 20px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
-}
+  z-index: 1001;
 
-/* 浅色模式移动端菜单 */
-:global(html.light) .mobile-menu {
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.98) 0%, 
-    rgba(248, 250, 252, 0.95) 100%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
-  box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.1),
-    0 4px 16px rgba(0, 0, 0, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
-}
-
-/* 深色模式移动端菜单 */
-:global(html.dark) .mobile-menu {
-  background: linear-gradient(135deg, 
-    rgba(17, 24, 39, 0.98) 0%, 
-    rgba(31, 41, 55, 0.95) 50%,
-    rgba(55, 65, 81, 0.9) 100%) !important;
-  border: 1px solid rgba(75, 85, 99, 0.4) !important;
-  box-shadow: 
+  background: linear-gradient(135deg,
+      rgba(17, 24, 39, 0.98) 0%,
+      rgba(31, 41, 55, 0.95) 50%,
+      rgba(55, 65, 81, 0.9) 100%);
+  border: 1px solid rgba(75, 85, 99, 0.4);
+  box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.4),
     0 4px 16px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .mobile-menu.active {
   opacity: 1;
   transform: translateY(0) scale(1);
-  box-shadow: 
-    0 15px 50px rgba(0, 0, 0, 0.2),
-    0 8px 25px rgba(0, 0, 0, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 .mobile-menu.active .mobile-nav-link {
@@ -442,17 +600,28 @@ const toggleMobileMenu = () => {
   transform: translateX(-20px);
 }
 
-.mobile-menu.active .mobile-nav-link:nth-child(1) { animation-delay: 0.1s; }
-.mobile-menu.active .mobile-nav-link:nth-child(2) { animation-delay: 0.2s; }
-.mobile-menu.active .mobile-nav-link:nth-child(3) { animation-delay: 0.3s; }
-.mobile-menu.active .mobile-nav-link:nth-child(4) { animation-delay: 0.4s; }
+.mobile-menu.active .mobile-nav-link:nth-child(1) {
+  animation-delay: 0.1s;
+}
 
-/* 移动端导航链接动画 */
+.mobile-menu.active .mobile-nav-link:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.mobile-menu.active .mobile-nav-link:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.mobile-menu.active .mobile-nav-link:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
 @keyframes mobileNavSlideIn {
   0% {
     opacity: 0;
     transform: translateX(-20px);
   }
+
   100% {
     opacity: 1;
     transform: translateX(0);
@@ -467,7 +636,7 @@ const toggleMobileMenu = () => {
 }
 
 .mobile-nav-link {
-  color: #6b7280;
+  color: #d1d5db;
   text-decoration: none;
   font-weight: 500;
   font-size: 16px;
@@ -475,312 +644,185 @@ const toggleMobileMenu = () => {
   transition: color 0.3s ease;
 }
 
-.mobile-nav-link:hover {
-  color: #1f2937;
-}
-
-:global(html.dark) .mobile-nav-link {
-  color: #d1d5db;
-}
-
-:global(html.dark) .mobile-nav-link:hover {
+.mobile-nav-link:hover,
+.mobile-nav-link.router-link-active {
   color: #ffffff;
 }
 
-:global(html.light) .mobile-nav-link {
-  color: #6b7280;
-}
-
-:global(html.light) .mobile-nav-link:hover {
-  color: #1f2937;
+.mobile-nav-link.router-link-active {
+  background: rgba(16, 185, 129, 0.1);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin: -8px -12px;
 }
 
 .mobile-actions {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  align-items: stretch;
+  width: 100%;
 }
 
-/* 移动端组件对齐 */
-.mobile-actions > * {
+.mobile-language-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.mobile-language-option {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: rgba(75, 85, 99, 0.2);
+  border: 1px solid rgba(75, 85, 99, 0.3);
+  border-radius: 12px;
+  color: #d1d5db;
+  cursor: pointer;
+  transition: all 0.3s ease;
   min-height: 44px;
 }
 
-.mobile-game-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  padding: 14px 24px;
-  border-radius: 14px;
-  font-weight: 600;
-  font-size: 16px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
-  position: relative;
-  overflow: hidden;
-  width: 100%;
+.mobile-language-option:hover {
+  background: rgba(75, 85, 99, 0.3);
+  color: #ffffff;
 }
 
-.mobile-game-btn:active {
-  transform: scale(0.98);
-  box-shadow: 0 4px 10px rgba(102, 126, 234, 0.2);
+.mobile-language-option.active {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #10b981;
 }
 
-.mobile-game-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transition: left 0.6s;
+.mobile-language-option .language-flag {
+  font-size: 18px;
 }
 
-.mobile-game-btn:active::before {
-  left: 100%;
+.mobile-language-option .check-icon {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  margin-left: auto;
 }
 
 /* 响应式设计 */
-/* 超小屏幕 (< 576px) */
-@media (max-width: 575.98px) {
+@media (max-width: 767.98px) {
   .navbar {
-    width: calc(100% - 20px);
-    top: 10px;
+    width: calc(100% - 24px);
+    top: 12px;
     border-radius: 14px;
   }
-  
+
   .nav-container {
-    padding: 6px 16px;
+    padding: 0 16px;
     height: 48px;
     min-height: 48px;
+    position: relative;
   }
-  
-  .nav-links {
-    display: none;
+
+  .nav-logo {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
   }
-  
+
+  .nav-links,
   .nav-actions {
     display: none;
   }
-  
+
   .mobile-menu-btn {
     display: flex;
-    width: 32px;
-    height: 32px;
+    margin-left: auto;
+    z-index: 3;
   }
-  
+
   .hamburger-line {
     width: 18px;
     height: 2px;
-    gap: 4px;
   }
-  
+
   .mobile-menu {
     display: block;
     padding: 16px;
     border-radius: 14px;
     margin-top: 6px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   }
-  
+
   .logo-text {
-    font-size: 18px;
+    font-size: 25px;
   }
-  
+
   .mobile-nav-link {
-    font-size: 16px;
     padding: 10px 0;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
   }
-  
+
   .mobile-game-btn {
     padding: 12px 20px;
-    font-size: 16px;
     border-radius: 10px;
     margin-top: 8px;
   }
 }
 
-/* 小屏幕 (576px - 767.98px) */
-@media (min-width: 576px) and (max-width: 767.98px) {
-  .navbar {
-    width: calc(100% - 16px);
-    top: 8px;
-    border-radius: 14px;
-  }
-  
-  .nav-container {
-    padding: 6px 16px;
-    height: 48px;
-  }
-  
-  .nav-links {
-    display: none;
-  }
-  
-  .nav-actions {
-    display: none;
-  }
-  
-  .mobile-menu-btn {
-    display: flex;
-    width: 30px;
-    height: 30px;
-  }
-  
-  .hamburger-line {
-    width: 18px;
-    height: 2px;
-  }
-  
-  .mobile-menu {
-    display: block;
-    padding: 16px;
-    border-radius: 14px;
-    margin-top: 6px;
-  }
-  
-  .logo-text {
-    font-size: 18px;
-  }
-  
-  .mobile-nav-link {
-    font-size: 15px;
-    padding: 8px 0;
-  }
-  
-  .mobile-game-btn {
-    padding: 10px 18px;
-    font-size: 15px;
-    border-radius: 10px;
-  }
-}
-
-/* 中等屏幕 (768px - 991.98px) */
 @media (min-width: 768px) and (max-width: 991.98px) {
   .navbar {
     width: calc(100% - 20px);
     top: 10px;
   }
-  
+
   .nav-container {
     padding: 8px 20px;
     height: 56px;
   }
-  
+
   .nav-links {
     gap: 24px;
   }
-  
+
   .nav-link {
     font-size: 16px;
   }
-  
-  .mobile-menu-btn {
-    display: none;
-  }
-  
-  .mobile-menu {
-    display: none;
-  }
-  
+
   .logo-text {
     font-size: 22px;
   }
-  
+
   .game-btn {
     padding: 8px 16px;
     font-size: 13px;
   }
 }
 
-/* 大屏幕 (992px - 1199.98px) */
 @media (min-width: 992px) and (max-width: 1199.98px) {
   .navbar {
     width: calc(100% - 30px);
     top: 15px;
   }
-  
+
   .nav-container {
     padding: 10px 24px;
     height: 60px;
   }
-  
+
   .nav-links {
     gap: 28px;
   }
-  
+
   .nav-link {
     font-size: 17px;
   }
-  
+
   .logo-text {
     font-size: 23px;
   }
-  
+
   .game-btn {
     padding: 9px 18px;
-    font-size: 14px;
-  }
-}
-
-/* 超大屏幕 (≥ 1200px) */
-@media (min-width: 1200px) {
-  .navbar {
-    width: calc(100% - 40px);
-    top: 20px;
-  }
-  
-  .nav-container {
-    padding: 12px 24px;
-    height: 64px;
-  }
-  
-  .nav-links {
-    gap: 32px;
-  }
-  
-  .nav-link {
-    font-size: 18px;
-  }
-  
-  .logo-text {
-    font-size: 24px;
-  }
-  
-  .game-btn {
-    padding: 10px 20px;
-    font-size: 14px;
-  }
-}
-
-/* 移动端菜单按钮动画优化 */
-@media (max-width: 767.98px) {
-  .mobile-menu-btn:hover .hamburger-line:nth-child(1) {
-    transform: translateY(-0.5px);
-  }
-  
-  .mobile-menu-btn:hover .hamburger-line:nth-child(3) {
-    transform: translateY(0.5px);
-  }
-  
-  /* 移动端触摸优化 */
-  .mobile-nav-link,
-  .mobile-game-btn {
-    min-height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    touch-action: manipulation;
-  }
-  
-  .mobile-nav-link {
-    justify-content: flex-start;
   }
 }
 
@@ -789,27 +831,27 @@ const toggleMobileMenu = () => {
   .navbar {
     top: 5px;
   }
-  
+
   .nav-container {
     height: 40px;
     padding: 4px 16px;
   }
-  
+
   .logo-text {
     font-size: 16px;
   }
-  
+
   .mobile-menu {
     padding: 8px;
     max-height: calc(100vh - 60px);
     overflow-y: auto;
   }
-  
+
   .mobile-nav-links {
     gap: 8px;
     margin-bottom: 12px;
   }
-  
+
   .mobile-nav-link {
     padding: 4px 0;
     font-size: 14px;
