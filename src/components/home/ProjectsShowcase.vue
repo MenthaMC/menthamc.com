@@ -189,22 +189,28 @@ const handleViewAll = () => {
 }
 
 .projects-grid {
-  display: flex;
-  flex-direction: column;
+  /* display: flex;
   gap: 32px;
+  flex-wrap: wrap;
+  justify-content: center; */
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px;
   margin-bottom: 80px;
 }
 
 .project-card {
+  width: 515px;
   background: rgba(31, 41, 55, 0.8);
   border: 1px solid rgba(75, 85, 99, 0.3);
   border-radius: 24px;
   padding: 32px;
-  position: relative;
   backdrop-filter: blur(10px);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 32px;
 }
@@ -378,6 +384,7 @@ const handleViewAll = () => {
 }
 
 .project-actions {
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 12px;

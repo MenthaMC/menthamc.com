@@ -176,6 +176,7 @@ const handleViewDocs = () => {
 }
 
 .title-line {
+  margin-top: 15px;
   display: block;
   color: #ffffff;
 }

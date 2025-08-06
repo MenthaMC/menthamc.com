@@ -140,13 +140,21 @@ const features = [
 }
 
 .features-grid {
+  /*
   display: flex;
+  flex-wrap: wrap;
   flex-direction: column;
+  gap: 24px;
+  justify-content: center; */
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 24px;
   margin-bottom: 100px;
 }
 
 .feature-item {
+  width: 515px;
   background: rgba(31, 41, 55, 0.6);
   border: 1px solid rgba(75, 85, 99, 0.3);
   border-radius: 20px;
@@ -156,6 +164,7 @@ const features = [
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 32px;
   text-align: left;

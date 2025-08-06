@@ -1,11 +1,10 @@
 <template>
-  <div id="app">
-    <Navbar />
-    <main class="main-content">
-      <router-view />
-    </main>
-    <Footer />
-  </div>
+  <Navbar />
+
+  <main class="main-content">
+    <router-view />
+  </main>
+  <Footer />
 </template>
 
 <script setup lang="ts">
@@ -16,13 +15,8 @@ import Navbar from './components/Navbar.vue';
 <style>
 @import './styles/global.css';
 
-#app {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
 .main-content {
+  padding: 0 !important;
   flex: 1;
   display: flex;
   flex-direction: column;

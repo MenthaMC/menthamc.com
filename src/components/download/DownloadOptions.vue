@@ -552,16 +552,16 @@ onUnmounted(() => {
 
 .dropdown-options {
   position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: rgba(15, 23, 42, 0.95);
+  top: calc(100% + 10px);
+  width: 100%;
+  z-index: 1000;
+  scrollbar-width: none;
+  background-color: rgba(15, 23, 42, 0.95);
   border: 2px solid rgba(16, 185, 129, 0.3);
   border-radius: 16px;
   margin-top: 8px;
   backdrop-filter: blur(15px);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-  z-index: 1000;
   max-height: 400px;
   overflow-y: auto;
   animation: dropdownSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);

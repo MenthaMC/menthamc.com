@@ -63,7 +63,7 @@
     </div>
 
     <!-- 移动端菜单 -->
-    <div class="mobile-menu" :class="{ active: isMobileMenuOpen }">
+    <div class="mobile-menu" :class="{ active: isMobileMenuOpen }" v-if="isMobileMenuOpen">
       <div class="mobile-nav-links">
         <router-link to="/" class="mobile-nav-link" @click="closeMobileMenu">{{ $t('nav.home') }}</router-link>
         <router-link to="/download" class="mobile-nav-link" @click="closeMobileMenu">{{ $t('nav.download')
@@ -193,12 +193,12 @@ onUnmounted(() => {
 /* 导航栏基础样式 */
 .navbar {
   position: fixed;
-  top: 20px;
-  left: 50%;
+  margin: 10px 50%;
   transform: translateX(-50%);
   width: calc(100% - 40px);
   max-width: 1200px;
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-radius: 16px;
   z-index: 1000;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -565,10 +565,6 @@ onUnmounted(() => {
 /* 移动端菜单 */
 .mobile-menu {
   display: none;
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
   backdrop-filter: blur(15px);
   border-radius: 16px;
   margin-top: 10px;
@@ -716,7 +712,7 @@ onUnmounted(() => {
 
   .nav-container {
     padding: 0 16px;
-    height: 48px;
+    height: 56px;
     min-height: 48px;
     position: relative;
   }
