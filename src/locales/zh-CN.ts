@@ -295,7 +295,6 @@ export default {
   },
   // 下载页面
   download: {
-    status: '稳定版本可用',
     hero: {
       title: '获取',
       subtitle: '下载最新版本的 Mint 服务端，体验极致性能和稳定性'
@@ -376,7 +375,7 @@ export default {
       privacy: '隐私政策',
       terms: '服务条款'
     },
-    copyright: '© 2025 MenthamC. 保留所有权利.',
+    copyright: '© 2025 MenthaMC. 保留所有权利.',
     note: '本项目基于开源协议，与 Mojang Studios 无关。'
   },
   // 项目卡片组件

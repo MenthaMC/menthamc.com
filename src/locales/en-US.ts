@@ -111,7 +111,6 @@ export default {
         }
       },
       download: {
-        title: 'Download Page Translation',
         items: {
           title: 'Download Title',
           subtitle: 'Download Subtitle',
@@ -459,7 +458,7 @@ export default {
       privacy: 'Privacy Policy',
       terms: 'Terms of Service'
     },
-    copyright: '© 2025 MenthamC All rights reserved.',
+    copyright: '© 2025 MenthaMC All rights reserved.',
     note: 'This project is based on open source license and is not affiliated with Mojang Studios.'
   },
   // Common Components

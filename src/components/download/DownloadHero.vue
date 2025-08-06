@@ -2,10 +2,7 @@
   <section class="hero-section">
     <div class="hero-container">
       <div class="hero-content">
-        <div class="status-badge">
           <div class="badge-dot"></div>
-          <span>{{ $t('download.status') }}</span>
-        </div>
         <h1 class="hero-title">
           {{ $t('download.hero.title') }} <span class="brand-name">Mint</span>
         </h1>
@@ -61,14 +58,6 @@ const { t } = useI18n()
   font-size: 14px;
   font-weight: 500;
   margin-bottom: 32px;
-}
-
-.badge-dot {
-  width: 8px;
-  height: 8px;
-  background: #10b981;
-  border-radius: 50%;
-  animation: pulse 2s infinite;
 }
 
 @keyframes pulse {
