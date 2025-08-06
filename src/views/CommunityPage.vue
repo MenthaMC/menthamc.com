@@ -92,8 +92,8 @@
               <div class="step-item">
                 <div class="step-number">1</div>
                 <div class="step-content">
-                  <h4>{{ $t('home.community.contribution.steps.fork.title') }}</h4>
-                  <p>{{ $t('home.community.contribution.steps.fork.description') }}</p>
+                  <h4>{{ t('community.contribute.steps.0.title') }}</h4>
+                  <p>{{ t('community.contribute.steps.0.description') }}</p>
                 </div>
               </div>
               <div class="step-item">
@@ -116,19 +116,19 @@
           <div class="guide-visual">
             <div class="code-preview">
               <div class="code-header">
-                <span class="code-title">{{ $t('community.contribute.stats.title') }}</span>
+                <span class="code-title">{{ t('community.contribute.stats.title') }}</span>
               </div>
               <div class="code-content">
                 <div class="contrib-stat">
-                  <span class="contrib-label">{{ $t('community.contribute.stats.commits') }}</span>
+                  <span class="contrib-label">{{ t('community.contribute.stats.commits') }}</span>
                   <span class="contrib-value">156</span>
                 </div>
                 <div class="contrib-stat">
-                  <span class="contrib-label">{{ $t('community.contribute.stats.contributors') }}</span>
+                  <span class="contrib-label">{{ t('community.contribute.stats.contributors') }}</span>
                   <span class="contrib-value">42</span>
                 </div>
                 <div class="contrib-stat">
-                  <span class="contrib-label">{{ $t('community.contribute.stats.mergedPRs') }}</span>
+                  <span class="contrib-label">{{ t('community.contribute.stats.mergedPRs') }}</span>
                   <span class="contrib-value">89</span>
                 </div>
               </div>

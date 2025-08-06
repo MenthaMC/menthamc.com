@@ -285,15 +285,20 @@ export default {
         title: 'Want to Contribute Code?',
         description: 'We welcome all forms of contributions! Whether it\'s code, documentation, testing, or feedback, everything helps make the project better.',
         steps: {
-          fork: {
+          0: {
             title: 'Fork Project',
             description: 'Fork our project to your account on GitHub'
           },
-          branch: {
+          1: {
             title: 'Create Branch',
             description: 'Create a new branch for your feature or fix'
+          },
+          2: {
+            title: 'Submit PR',
+            description: 'Submit a Pull Request for code review after development'
           }
-        }
+        },
+        action: 'Start Contributing'
       }
     }
   },
@@ -358,13 +363,17 @@ export default {
       description: 'Become a contributor to the MenthaMC open source project and help us improve and enhance this project together. Whether it\'s code contributions, documentation improvements, or issue feedback, every contribution is valuable.',
       action: 'Start Contributing',
       steps: {
-        1: {
+        0: {
           title: 'Fork Project',
           description: 'Fork our project to your account on GitHub'
         },
-        2: {
+        1: {
           title: 'Create Branch',
           description: 'Create a new branch for your feature or fix'
+        },
+        2: {
+          title: 'Submit PR',
+          description: 'Submit a Pull Request for code review after development'
         }
       },
       stats: {

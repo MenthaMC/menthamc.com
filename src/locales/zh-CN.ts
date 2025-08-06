@@ -237,15 +237,20 @@ export default {
         title: '想要贡献代码？',
         description: '我们欢迎所有形式的贡献！无论是代码、文档、测试还是反馈，都能帮助项目变得更好。',
         steps: {
-          fork: {
+          0: {
             title: 'Fork 项目',
             description: '在 GitHub 上 Fork 我们的项目到你的账户'
           },
-          branch: {
+          1: {
             title: '创建分支',
             description: '为你的功能或修复创建一个新的分支'
+          },
+          2: {
+            title: '提交 PR',
+            description: '完成开发后提交 Pull Request 进行代码审查'
           }
-        }
+        },
+        action: '开始贡献'
       }
     }
   },
@@ -285,6 +290,20 @@ export default {
       title: '参与贡献',
       description: '成为 MenthaMC 开源项目的贡献者，与我们一起改进和完善这个项目。无论是代码贡献、文档完善还是问题反馈，每一份贡献都很宝贵。',
       action: '开始贡献',
+      steps: {
+        0: {
+          title: 'Fork 项目',
+          description: '在 GitHub 上 Fork 我们的项目到你的账户'
+        },
+        1: {
+          title: '创建分支',
+          description: '为你的功能或修复创建一个新的分支'
+        },
+        2: {
+          title: '提交 PR',
+          description: '完成开发后提交 Pull Request 进行代码审查'
+        }
+      },
       stats: {
         title: '贡献统计',
         commits: '本月提交',
