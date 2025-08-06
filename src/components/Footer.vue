@@ -5,9 +5,9 @@
       <div class="footer-content">
         <!-- 品牌信息 -->
         <div class="footer-section">
-          <h3 class="footer-title">MenthaMC Team</h3>
+          <h3 class="footer-title">{{ $t('footer.brand.title') }}</h3>
           <p class="footer-description">
-            致力于提供更好的整体性能和原版机制
+            {{ $t('footer.brand.description') }}
           </p>
           <div class="social-links">
             <a href="#" class="social-link" aria-label="GitHub">
@@ -27,12 +27,12 @@
 
         <!-- 快速链接 -->
         <div class="footer-section">
-          <h4 class="footer-subtitle">快速链接</h4>
+          <h4 class="footer-subtitle">{{ $t('footer.links.title') }}</h4>
           <ul class="footer-links">
-            <li><router-link to="/" class="footer-link">首页</router-link></li>
-            <li><router-link to="/download" class="footer-link">下载</router-link></li>
-            <li><router-link to="/community" class="footer-link">社区</router-link></li>
-            <li><a href="#" class="footer-link">文档</a></li>
+            <li><router-link to="/" class="footer-link">{{ $t('footer.links.home') }}</router-link></li>
+            <li><router-link to="/download" class="footer-link">{{ $t('footer.links.download') }}</router-link></li>
+            <li><router-link to="/community" class="footer-link">{{ $t('footer.links.community') }}</router-link></li>
+            <li><a href="#" class="footer-link">{{ $t('footer.links.docs') }}</a></li>
           </ul>
         </div>
 
@@ -41,8 +41,8 @@
       <!-- 底部版权信息 -->
       <div class="footer-bottom">
         <div class="footer-copyright">
-          <p>&copy; 2025 MenthamC. 保留所有权利.</p>
-          <p class="footer-note">本项目基于开源协议，与 Mojang Studios 无关。</p>
+          <p>{{ $t('footer.copyright') }}</p>
+          <p class="footer-note">{{ $t('footer.note') }}</p>
         </div>
       </div>
     </div>

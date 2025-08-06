@@ -8,47 +8,45 @@
 
     <div class="welcome-content">
       <div class="welcome-badge">
-        <span class="badge-icon">🚀</span>
-        <span class="badge-text">{{ $t('welcome.badge') }}</span>
       </div>
 
       <h1 class="welcome-title">
-        <span class="title-line">{{ $t('welcome.title.line1') }}</span>
-        <span class="title-highlight">{{ $t('welcome.title.highlight') }}</span>
-        <span class="title-line">{{ $t('welcome.title.line2') }}</span>
+        <span class="title-line">{{ $t('home.welcome.title.line1') }}</span>
+        <span class="title-highlight">{{ $t('home.welcome.title.highlight') }}</span>
+        <span class="title-line">{{ $t('home.welcome.title.line2') }}</span>
       </h1>
 
       <p class="welcome-description">
-        {{ $t('welcome.description') }}
+        {{ $t('home.welcome.description') }}
       </p>
 
       <div class="welcome-actions">
         <button class="action-btn primary" @click="handleGetStarted">
           <span class="btn-icon">⚡</span>
-          <span>{{ $t('welcome.actions.getStarted') }}</span>
+          <span>{{ $t('home.welcome.actions.getStarted') }}</span>
           <span class="btn-arrow">→</span>
         </button>
 
         <button class="action-btn secondary" @click="handleViewDocs">
           <span class="btn-icon">📚</span>
-          <span>{{ $t('welcome.actions.viewDocs') }}</span>
+          <span>{{ $t('home.welcome.actions.viewDocs') }}</span>
         </button>
       </div>
 
       <div class="welcome-stats">
         <div class="stat-item">
           <div class="stat-number">35+</div>
-          <div class="stat-label">{{ $t('welcome.stats.stars') }}</div>
+          <div class="stat-label">{{ $t('home.welcome.stats.stars') }}</div>
         </div>
         <div class="stat-divider"></div>
         <div class="stat-item">
           <div class="stat-number">1000+</div>
-          <div class="stat-label">{{ $t('welcome.stats.users') }}</div>
+          <div class="stat-label">{{ $t('home.welcome.stats.users') }}</div>
         </div>
         <div class="stat-divider"></div>
         <div class="stat-item">
           <div class="stat-number">100%</div>
-          <div class="stat-label">{{ $t('welcome.stats.opensource') }}</div>
+          <div class="stat-label">{{ $t('home.welcome.stats.opensource') }}</div>
         </div>
       </div>
     </div>
@@ -144,29 +142,6 @@ const handleViewDocs = () => {
   margin: 0 auto;
 }
 
-.welcome-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  border-radius: 50px;
-  padding: 8px 20px;
-  margin-bottom: 32px;
-  backdrop-filter: blur(10px);
-  animation: slideInDown 0.8s ease-out;
-}
-
-.badge-icon {
-  font-size: 16px;
-}
-
-.badge-text {
-  font-size: 14px;
-  font-weight: 600;
-  color: #10b981;
-}
-
 .welcome-title {
   font-size: 4rem;
   font-weight: 800;
@@ -176,6 +151,7 @@ const handleViewDocs = () => {
 }
 
 .title-line {
+  margin-top: 15px;
   display: block;
   color: #ffffff;
 }

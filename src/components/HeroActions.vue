@@ -8,11 +8,11 @@
           <line x1="12" y1="15" x2="12" y2="3" />
         </svg>
       </span>
-      <span class="btn-text">{{ $t('hero.actions.download') }}</span>
+      <span class="btn-text">{{ $t('home.hero.actions.download') }}</span>
       <span class="btn-shine"></span>
     </button>
     <button class="btn btn--secondary" @click="handleLearnMore">
-      <span class="btn-text">{{ $t('hero.actions.learnMore') }}</span>
+      <span class="btn-text">{{ $t('home.hero.actions.learnMore') }}</span>
       <span class="btn-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M5 12h14" />
@@ -24,7 +24,10 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import type { HeroActionsProps } from '../types';
+
+const { t } = useI18n()
 
 // Props定义
 const props = withDefaults(defineProps<HeroActionsProps>(), {
@@ -40,14 +43,14 @@ const emit = defineEmits<{
 
 // 事件处理函数
 const handleDownload = () => {
-  console.log('开始下载')
+  console.log(t('hero.actions.download'))
   emit('download')
   props.onDownload?.()
   // TODO: 实现下载逻辑
 }
 
 const handleLearnMore = () => {
-  console.log('了解更多')
+  console.log(t('hero.actions.learnMore'))
   emit('learnMore')
   props.onLearnMore?.()
   // TODO: 实现了解更多逻辑

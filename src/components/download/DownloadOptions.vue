@@ -1,82 +1,6 @@
 <template>
   <section class="download-options">
     <div class="options-container">
-      <div class="card-header">
-        <h2>选择您的版本</h2>
-      </div>
-
-      <!-- 版本选择下拉 -->
-      <div class="version-selector">
-        <div class="selector-wrapper">
-          <label class="selector-label">选择版本</label>
-          <div class="custom-select" :class="{ open: isDropdownOpen }" @click="toggleDropdown">
-            <div class="select-trigger">
-              <div class="selected-version">
-                <div class="version-info">
-                  <span class="version-number">{{ currentVersionInfo.version }}</span>
-                  <div class="version-badges">
-                    <span v-if="currentVersionInfo.latest" class="mini-badge latest">最新</span>
-                  </div>
-                </div>
-                <div class="version-meta">
-                  <span class="build-info">构建 #{{ currentVersionInfo.build }}</span>
-                  <span class="release-info">{{ formatDate(currentVersionInfo.releaseDate) }}</span>
-                </div>
-              </div>
-              <div class="dropdown-arrow">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="6,9 12,15 18,9" />
-                </svg>
-              </div>
-            </div>
-
-            <!-- 下拉选项 -->
-            <div class="dropdown-options" v-show="isDropdownOpen">
-              <div class="options-header">
-                <span class="options-title">选择版本</span>
-                <button class="close-btn" @click.stop="closeDropdown">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="18" y1="6" x2="6" y2="18" />
-                    <line x1="6" y1="6" x2="18" y2="18" />
-                  </svg>
-                </button>
-              </div>
-
-              <div class="options-list">
-                <div v-for="version in versions" :key="version.id" class="option-item" :class="{
-                  selected: selectedVersion === version.id,
-                  latest: version.latest
-                }" @click.stop="selectVersionFromDropdown(version.id)">
-                  <div class="option-main">
-                    <div class="option-header">
-                      <span class="option-version">{{ version.version }}</span>
-                      <div class="option-badges">
-                        <span v-if="version.latest" class="option-badge latest">
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
-                            <path
-                              d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                          </svg>
-                          最新
-                        </span>
-                      </div>
-                    </div>
-                    <div class="option-details">
-                      <span class="detail">构建 #{{ version.build }}</span>
-                      <span class="detail">{{ formatDate(version.releaseDate) }}</span>
-                    </div>
-                  </div>
-                  <div class="option-check" v-if="selectedVersion === version.id">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="20,6 9,17 4,12" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- 下载详情 -->
       <div class="download-details">
         <div class="selected-version">
@@ -95,114 +19,117 @@
           <div class="file-specs">
             <div class="spec-item">
               <div class="spec-icon">📦</div>
-              <div class="spec-details">
-                <span class="spec-label">文件大小</span>
-                <span class="spec-value">{{ currentVersionInfo.size }}</span>
-              </div>
+            <div class="spec-details">
+              <span class="spec-label">{{ $t('download.options.fileSpecs.fileSize') }}</span>
+              <span class="spec-value">{{ currentVersionInfo.size }}</span>
             </div>
-            <div class="spec-item">
-              <div class="spec-icon">☕</div>
-              <div class="spec-details">
-                <span class="spec-label">Java 版本</span>
-                <span class="spec-value">{{ currentVersionInfo.java }}</span>
-              </div>
+          </div>
+          <div class="spec-item">
+            <div class="spec-icon">☕</div>
+            <div class="spec-details">
+              <span class="spec-label">{{ $t('download.options.fileSpecs.javaVersion') }}</span>
+              <span class="spec-value">{{ currentVersionInfo.java }}</span>
             </div>
-            <div class="spec-item">
-              <div class="spec-icon">🔧</div>
-              <div class="spec-details">
-                <span class="spec-label">构建号</span>
-                <span class="spec-value">#{{ currentVersionInfo.build }}</span>
-              </div>
+          </div>
+          <div class="spec-item">
+            <div class="spec-icon">🔧</div>
+            <div class="spec-details">
+              <span class="spec-label">{{ $t('download.options.fileSpecs.buildNumber') }}</span>
+              <span class="spec-value">#{{ currentVersionInfo.build }}</span>
             </div>
-            <div class="spec-item">
-              <div class="spec-icon">📅</div>
-              <div class="spec-details">
-                <span class="spec-label">发布日期</span>
-                <span class="spec-value">{{ currentVersionInfo.releaseDate }}</span>
-              </div>
+          </div>
+          <div class="spec-item">
+            <div class="spec-icon">📅</div>
+            <div class="spec-details">
+              <span class="spec-label">{{ $t('download.options.fileSpecs.releaseDate') }}</span>
+              <span class="spec-value">{{ currentVersionInfo.releaseDate }}</span>
             </div>
           </div>
         </div>
-
       </div>
 
-      <!-- 所有按钮移到卡片底部 -->
-      <div class="card-footer">
-        <!-- 主下载按钮 -->
-        <div class="primary-download">
-          <button class="download-btn" @click="startDownload">
-            <!-- 按钮内容 -->
-            <div class="btn-content">
-              <!-- 图标区域 -->
-              <div class="btn-icon-wrapper">
-                <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="7,10 12,15 17,10" />
-                  <line x1="12" y1="15" x2="12" y2="3" />
-                </svg>
-              </div>
+    </div>
 
-              <!-- 文字区域 -->
-              <div class="btn-text-wrapper">
-                <span class="btn-text">
-                  {{ getButtonText() }}
-                </span>
-                <span class="btn-subtext">
-                  {{ getButtonSubtext() }}
-                </span>
-              </div>
+    <!-- 所有按钮移到卡片底部 -->
+    <div class="card-footer">
+      <!-- 主下载按钮 -->
+      <div class="primary-download">
+        <button class="download-btn" @click="startDownload">
+          <!-- 按钮内容 -->
+          <div class="btn-content">
+            <!-- 图标区域 -->
+            <div class="btn-icon-wrapper">
+              <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7,10 12,15 17,10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
             </div>
-          </button>
 
-          <!-- 文件信息提示 -->
-          <div class="download-info">
-            <div class="file-size">{{ currentVersionInfo.size }}</div>
-            <div class="file-type">JAR 文件</div>
+            <!-- 文字区域 -->
+            <div class="btn-text-wrapper">
+              <span class="btn-text">
+                {{ $t('download.options.actions.download') }}
+              </span>
+              <span class="btn-subtext">
+                Mint {{ currentVersionInfo.version }}
+              </span>
+            </div>
           </div>
-        </div>
+        </button>
 
-        <!-- 辅助操作按钮 -->
-        <div class="secondary-actions">
-          <button class="action-btn verify-btn" @click="verifyFile">
-            <div class="action-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M9 12l2 2 4-4" />
-                <path d="M21 12c-1 0-3-1-3-3s2-3 3-3 3 1 3 3-2 3-3 3" />
-              </svg>
-            </div>
-            <span class="action-text">校验文件</span>
-          </button>
-
-          <button class="action-btn docs-btn" @click="openDocs">
-            <div class="action-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14,2 14,8 20,8" />
-              </svg>
-            </div>
-            <span class="action-text">查看文档</span>
-          </button>
-
-          <button class="action-btn changelog-btn" @click="viewChangelog">
-            <div class="action-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14,2 14,8 20,8" />
-                <path d="M16 13H8" />
-                <path d="M16 17H8" />
-                <path d="M10 9H8" />
-              </svg>
-            </div>
-            <span class="action-text">更新日志</span>
-          </button>
+        <!-- 文件信息提示 -->
+        <div class="download-info">
+          <div class="file-size">{{ currentVersionInfo.size }}</div>
+          <div class="file-type">{{ $t('download.options.fileType') }}</div>
         </div>
       </div>
+
+      <!-- 辅助操作按钮 -->
+      <div class="secondary-actions">
+        <button class="action-btn verify-btn" @click="verifyFile">
+          <div class="action-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 12l2 2 4-4" />
+              <path d="M21 12c-1 0-3-1-3-3s2-3 3-3 3 1 3 3-2 3-3 3" />
+            </svg>
+          </div>
+          <span class="action-text">{{ $t('download.options.actions.verify') }}</span>
+        </button>
+
+        <button class="action-btn docs-btn" @click="openDocs">
+          <div class="action-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14,2 14,8 20,8" />
+            </svg>
+          </div>
+          <span class="action-text">{{ $t('download.options.actions.docs') }}</span>
+        </button>
+
+        <button class="action-btn changelog-btn" @click="viewChangelog">
+          <div class="action-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14,2 14,8 20,8" />
+              <path d="M16 13H8" />
+              <path d="M16 17H8" />
+              <path d="M10 9H8" />
+            </svg>
+          </div>
+          <span class="action-text">{{ $t('download.options.actions.changelog') }}</span>
+        </button>
+      </div>
+    </div>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 // 响应式数据
 const selectedVersion = ref('1218')
@@ -327,7 +254,7 @@ const startDownload = () => {
 
 // 获取按钮文字
 const getButtonText = () => {
-  return '立即下载'
+  return t('download.options.actions.download')
 }
 
 // 获取按钮副文字
@@ -337,7 +264,7 @@ const getButtonSubtext = () => {
 
 // 校验文件
 const verifyFile = () => {
-  alert('文件校验功能开发中...')
+  alert(t('download.options.alerts.verifyInDevelopment'))
 }
 
 // 打开文档
@@ -552,16 +479,15 @@ onUnmounted(() => {
 
 .dropdown-options {
   position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: rgba(15, 23, 42, 0.95);
+  top: calc(100% + 10px);
+  width: 100%;
+  z-index: 10000;
+  scrollbar-width: none;
+  background-color: rgb(15, 23, 42);
   border: 2px solid rgba(16, 185, 129, 0.3);
   border-radius: 16px;
   margin-top: 8px;
-  backdrop-filter: blur(15px);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-  z-index: 1000;
   max-height: 400px;
   overflow-y: auto;
   animation: dropdownSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);

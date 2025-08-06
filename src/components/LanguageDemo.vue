@@ -1,10 +1,10 @@
 <template>
   <div class="language-demo">
     <div class="demo-container">
-      <h2 class="demo-title">🌍 多语言支持演示</h2>
+      <h2 class="demo-title">{{ $t('home.languageDemo.title') }}</h2>
 
       <div class="language-switcher">
-        <h3>语言切换器</h3>
+        <h3>{{ $t('home.languageDemo.languageSwitcher.title') }}</h3>
         <div class="switcher-buttons">
           <button v-for="lang in availableLanguages" :key="lang.code" @click="switchLanguage(lang.code)"
             :class="['lang-btn', { active: currentLanguage === lang.code }]">
@@ -16,7 +16,7 @@
 
       <div class="demo-sections">
         <div class="demo-section">
-          <h3>导航栏翻译</h3>
+          <h3>{{ $t('home.languageDemo.sections.nav.title') }}</h3>
           <div class="translation-item">
             <span class="key">nav.home:</span>
             <span class="value">{{ $t('nav.home') }}</span>
@@ -36,39 +36,39 @@
         </div>
 
         <div class="demo-section">
-          <h3>欢迎页面翻译</h3>
+          <h3>{{ $t('home.languageDemo.sections.welcome.title') }}</h3>
           <div class="translation-item">
-            <span class="key">welcome.title.highlight:</span>
-            <span class="value">{{ $t('welcome.title.highlight') }}</span>
+            <span class="key">home.welcome.title.highlight:</span>
+            <span class="value">{{ $t('home.welcome.title.highlight') }}</span>
           </div>
           <div class="translation-item">
-            <span class="key">welcome.description:</span>
-            <span class="value">{{ $t('welcome.description') }}</span>
+            <span class="key">home.welcome.description:</span>
+            <span class="value">{{ $t('home.welcome.description') }}</span>
           </div>
           <div class="translation-item">
-            <span class="key">welcome.actions.getStarted:</span>
-            <span class="value">{{ $t('welcome.actions.getStarted') }}</span>
-          </div>
-        </div>
-
-        <div class="demo-section">
-          <h3>特性页面翻译</h3>
-          <div class="translation-item">
-            <span class="key">features.title:</span>
-            <span class="value">{{ $t('features.title') }}</span>
-          </div>
-          <div class="translation-item">
-            <span class="key">features.items.performance.title:</span>
-            <span class="value">{{ $t('features.items.performance.title') }}</span>
-          </div>
-          <div class="translation-item">
-            <span class="key">features.items.stability.title:</span>
-            <span class="value">{{ $t('features.items.stability.title') }}</span>
+            <span class="key">home.welcome.actions.getStarted:</span>
+            <span class="value">{{ $t('home.welcome.actions.getStarted') }}</span>
           </div>
         </div>
 
         <div class="demo-section">
-          <h3>下载页面翻译</h3>
+          <h3>{{ $t('home.languageDemo.sections.features.title') }}</h3>
+          <div class="translation-item">
+            <span class="key">home.features.title:</span>
+            <span class="value">{{ $t('home.features.title') }}</span>
+          </div>
+          <div class="translation-item">
+            <span class="key">home.features.items.performance.title:</span>
+            <span class="value">{{ $t('home.features.items.performance.title') }}</span>
+          </div>
+          <div class="translation-item">
+            <span class="key">home.features.items.stability.title:</span>
+            <span class="value">{{ $t('home.features.items.stability.title') }}</span>
+          </div>
+        </div>
+
+        <div class="demo-section">
+          <h3>{{ $t('home.languageDemo.sections.download.title') }}</h3>
           <div class="translation-item">
             <span class="key">download.hero.title:</span>
             <span class="value">{{ $t('download.hero.title') }}</span>
@@ -85,14 +85,9 @@
       </div>
 
       <div class="demo-info">
-        <h3>多语言功能特点</h3>
+        <h3>{{ $t('home.languageDemo.features.title') }}</h3>
         <ul class="feature-list">
-          <li>✅ 支持中文（简体）和英文</li>
-          <li>✅ 自动检测浏览器语言</li>
-          <li>✅ 本地存储语言偏好</li>
-          <li>✅ 实时语言切换</li>
-          <li>✅ 响应式语言选择器</li>
-          <li>✅ 完整的页面翻译覆盖</li>
+          <li v-for="(feature, index) in $t('home.languageDemo.features.list')" :key="index">{{ feature }}</li>
         </ul>
       </div>
     </div>
@@ -100,17 +95,18 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { useLanguage } from '../composables/useLanguage'
 
+const { t } = useI18n()
 const {
-  t,
   currentLanguage,
   languages: availableLanguages,
   changeLanguage
 } = useLanguage()
 
-const switchLanguage = (langCode: 'zh-CN' | 'en-US') => {
-  changeLanguage(langCode)
+const switchLanguage = (langCode: string) => {
+  changeLanguage(langCode as 'zh-CN' | 'en-US')
 }
 </script>
 

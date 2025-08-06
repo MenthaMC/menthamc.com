@@ -2,8 +2,8 @@
   <section class="history-section">
     <div class="history-container">
       <div class="section-header">
-        <h2>版本历史</h2>
-        <p>浏览所有可用的构建版本和更新记录</p>
+        <h2>{{ $t('download.history.title') }}</h2>
+        <p>{{ $t('download.history.description') }}</p>
       </div>
 
       <div class="history-timeline">
@@ -17,7 +17,7 @@
           <div class="timeline-content">
             <div class="build-header">
               <div class="build-info">
-                <h3 class="build-title">构建 #{{ build.number }}</h3>
+                <h3 class="build-title">{{ $t('download.history.buildNumber') }}{{ build.number }}</h3>
                 <div class="build-meta">
                   <span class="build-date">{{ build.date }}</span>
                   <span class="build-author">by {{ build.author }}</span>
@@ -36,7 +36,7 @@
               <div class="change-stats">
                 <span class="stat additions">+{{ build.additions }}</span>
                 <span class="stat deletions">-{{ build.deletions }}</span>
-                <span class="stat files">{{ build.files }} 文件</span>
+                <span class="stat files">{{ $t('download.history.filesCount', { count: build.files }) }}</span>
               </div>
             </div>
 
@@ -47,14 +47,14 @@
                   <polyline points="7,10 12,15 17,10" />
                   <line x1="12" y1="15" x2="12" y2="3" />
                 </svg>
-                下载
+                {{ $t('download.history.actions.download') }}
               </button>
               <button class="action-btn secondary" @click="viewChangelog(build)">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                   <polyline points="14,2 14,8 20,8" />
                 </svg>
-                更新日志
+                {{ $t('download.history.actions.changelog') }}
               </button>
               <button class="action-btn secondary" @click="viewCommit(build)">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -73,6 +73,9 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 // 构建历史数据
 const buildHistory = ref([
@@ -140,24 +143,19 @@ const buildHistory = ref([
 
 // 方法
 const getStatusText = (status: string) => {
-  const statusMap = {
-    stable: '稳定',
-    beta: '测试',
-    legacy: '旧版'
-  }
-  return statusMap[status as keyof typeof statusMap] || '未知'
+  return t(`download.history.status.${status}`)
 }
 
 const downloadBuild = (build: any) => {
-  console.log(`下载构建 #${build.number}`)
+  console.log(t('download.history.console.downloadBuild') + build.number)
 }
 
 const viewChangelog = (build: any) => {
-  console.log(`查看构建 #${build.number} 的更新日志`)
+  console.log(t('download.history.console.viewChangelog') + build.number + t('download.history.console.changelogSuffix'))
 }
 
 const viewCommit = (build: any) => {
-  console.log(`查看提交 ${build.hash}`)
+  console.log(t('download.history.console.viewCommit') + build.hash)
 }
 </script>
 

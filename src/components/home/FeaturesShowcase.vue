@@ -2,7 +2,7 @@
   <section class="features-showcase">
     <div class="container">
       <div class="section-header">
-        <h2 class="section-title">{{ $t('features.title') }}</h2>
+        <h2 class="section-title">{{ $t('home.features.title') }}</h2>
       </div>
 
       <div class="features-grid">
@@ -11,23 +11,23 @@
             <span v-html="feature.icon"></span>
           </div>
           <div class="feature-content">
-            <h3 class="feature-title">{{ $t(`features.items.${feature.key}.title`) }}</h3>
-            <p class="feature-description">{{ $t(`features.items.${feature.key}.description`) }}</p>
+            <h3 class="feature-title">{{ $t(`home.features.items.${feature.key}.title`) }}</h3>
+            <p class="feature-description">{{ $t(`home.features.items.${feature.key}.description`) }}</p>
           </div>
           <div class="feature-highlight" v-if="feature.highlight">
-            <span class="highlight-badge">{{ $t(`features.items.${feature.key}.highlight`) }}</span>
+            <span class="highlight-badge">{{ $t(`home.features.items.${feature.key}.highlight`) }}</span>
           </div>
         </div>
       </div>
 
       <div class="performance-comparison">
-        <h3 class="comparison-title">{{ $t('features.performance.title') }}</h3>
+        <h3 class="comparison-title">{{ $t('home.features.comparison.title') }}</h3>
         <div class="comparison-chart">
           <div class="chart-item">
             <div class="chart-bar">
               <div class="bar-fill vanilla" style="height: 40%"></div>
             </div>
-            <span class="chart-label">{{ $t('features.performance.vanilla') }}</span>
+            <span class="chart-label">{{ $t('home.features.comparison.vanilla') }}</span>
           </div>
           <div class="chart-item">
             <div class="chart-bar">
@@ -46,7 +46,7 @@
               <div class="bar-fill mint" style="height: 95%"></div>
             </div>
             <span class="chart-label">Mint</span>
-            <div class="performance-badge">{{ $t('features.performance.best') }}</div>
+            <div class="performance-badge">{{ $t('home.features.comparison.best') }}</div>
           </div>
         </div>
       </div>
@@ -140,13 +140,21 @@ const features = [
 }
 
 .features-grid {
+  /*
   display: flex;
+  flex-wrap: wrap;
   flex-direction: column;
+  gap: 24px;
+  justify-content: center; */
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 24px;
   margin-bottom: 100px;
 }
 
 .feature-item {
+  width: 515px;
   background: rgba(31, 41, 55, 0.6);
   border: 1px solid rgba(75, 85, 99, 0.3);
   border-radius: 20px;
@@ -156,6 +164,7 @@ const features = [
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 32px;
   text-align: left;

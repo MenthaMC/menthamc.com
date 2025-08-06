@@ -1,6 +1,6 @@
 <template>
   <div class="main-projects-section" ref="mainProjectsContainer">
-    <h2 class="projects-title">主要项目</h2>
+    <h2 class="projects-title">{{ $t('home.projects.title') }}</h2>
     <div class="projects-grid">
       <ProjectCard v-for="project in projects" :key="project.title" :title="project.title"
         :description="project.description" :stats="project.stats" :github-url="project.githubUrl"
@@ -10,44 +10,46 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import ProjectCard from './ProjectCard.vue';
 
 // 模板引用
 const mainProjectsContainer = ref<HTMLElement>();
 
-// 路由
+// 路由和国际化
 const router = useRouter();
+const { t } = useI18n();
 
-// 项目数据
-const projects = [
+// 项目数据 - 使用计算属性以支持响应式翻译
+const projects = computed(() => [
   {
-    title: 'Mint',
-    description: 'Mint 是基于 Folia 的分支，致力于提供更好的整体性能和原版机制',
-    stats: ['⭐ 35', '🍴 2', '📦 1.21.8'],
+    title: t('home.projects.items.mint.title'),
+    description: t('home.projects.items.mint.description'),
+    stats: t('home.projects.items.mint.stats'),
     githubUrl: 'https://github.com/MenthaMC/Mint',
     featured: true
   },
   {
-    title: 'LemonMint',
-    description: '基于Mint制作的服务端，正努力让更多的Bukkit插件能够运行，并且在原基础上修复被破坏的特性和改进性能、并添加独特的特性',
-    stats: ['⭐ 9k', '🍴 1', '📦 1.21.8'],
+    title: t('home.projects.items.lemonMint.title'),
+    description: t('home.projects.items.lemonMint.description'),
+    stats: t('home.projects.items.lemonMint.stats'),
     githubUrl: 'https://github.com/MenthaMC/LemonMint',
     featured: false
   }
-];
+]);
 
 // 事件处理函数
 const handleProjectDetail = (projectType: string) => {
-  console.log('查看项目详情:', projectType);
+  console.log(t('home.projects.actions.viewDetail') + ':', projectType);
   // 可以根据项目类型跳转到不同的详情页面
   // 这里暂时跳转到下载页面
   router.push('/download');
 };
 
 const handleGitHub = (url: string) => {
-  console.log('打开GitHub链接:', url);
+  console.log(t('home.projects.actions.github') + ':', url);
   window.open(url, '_blank');
 };
 

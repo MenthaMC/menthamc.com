@@ -1,0 +1,77 @@
+<template>
+    <div class="card-header">
+        <h2>选择您的版本</h2>
+      </div>
+
+      <!-- 版本选择下拉 -->
+      <div class="version-selector">
+        <div class="selector-wrapper">
+          <label class="selector-label">选择版本</label>
+          <div class="custom-select" :class="{ open: isDropdownOpen }" @click="toggleDropdown">
+            <div class="select-trigger">
+              <div class="selected-version">
+                <div class="version-info">
+                  <span class="version-number">{{ currentVersionInfo.version }}</span>
+                  <div class="version-badges">
+                    <span v-if="currentVersionInfo.latest" class="mini-badge latest">最新</span>
+                  </div>
+                </div>
+                <div class="version-meta">
+                  <span class="build-info">构建 #{{ currentVersionInfo.build }}</span>
+                  <span class="release-info">{{ formatDate(currentVersionInfo.releaseDate) }}</span>
+                </div>
+              </div>
+              <div class="dropdown-arrow">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="6,9 12,15 18,9" />
+                </svg>
+              </div>
+            </div>
+
+            <!-- 下拉选项 -->
+            <div class="dropdown-options" v-show="isDropdownOpen">
+              <div class="options-header">
+                <span class="options-title">选择版本</span>
+                <button class="close-btn" @click.stop="closeDropdown">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </div>
+
+              <div class="options-list">
+                <div v-for="version in versions" :key="version.id" class="option-item" :class="{
+                  selected: selectedVersion === version.id,
+                  latest: version.latest
+                }" @click.stop="selectVersionFromDropdown(version.id)">
+                  <div class="option-main">
+                    <div class="option-header">
+                      <span class="option-version">{{ version.version }}</span>
+                      <div class="option-badges">
+                        <span v-if="version.latest" class="option-badge latest">
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                            <path
+                              d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                          </svg>
+                          最新
+                        </span>
+                      </div>
+                    </div>
+                    <div class="option-details">
+                      <span class="detail">构建 #{{ version.build }}</span>
+                      <span class="detail">{{ formatDate(version.releaseDate) }}</span>
+                    </div>
+                  </div>
+                  <div class="option-check" v-if="selectedVersion === version.id">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="20,6 9,17 4,12" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+</template>

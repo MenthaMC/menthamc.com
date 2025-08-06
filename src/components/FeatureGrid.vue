@@ -1,13 +1,33 @@
 <template>
   <div class="features-section" ref="featureCardsContainer">
     <div class="features-grid">
-      <FeatureCard type="free" title="免费 & 开源" description="受到许多腐竹的信任" number="100" />
+      <FeatureCard 
+        type="free" 
+        :title="$t('home.features.items.free.title')"
+        :description="$t('home.features.items.free.description')"
+        :number="$t('home.features.items.free.number')"
+      />
 
-      <FeatureCard type="modern" title="高自定义" description="包含多种实用的功能和和原版修复, 可在配置中自定义" highlight="高度优化" />
+      <FeatureCard 
+        type="modern" 
+        :title="$t('home.features.items.modern.title')"
+        :description="$t('home.features.items.modern.description')"
+        :highlight="$t('home.features.items.modern.highlight')"
+      />
 
-      <FeatureCard type="components" title="Github" description="欢迎 Star 和 Fork" number="Star⭐ 35" />
+      <FeatureCard 
+        type="components" 
+        :title="$t('home.features.items.components.title')"
+        :description="$t('featureGrid.components.description')" 
+        :number="$t('featureGrid.components.number')" 
+      />
 
-      <FeatureCard type="long" title="更好的性能优化" description="基于Folia的分支，为大型服务器提供更好的性能优化" :tech-stack="techStack" />
+      <FeatureCard 
+        type="long" 
+        :title="$t('featureGrid.long.title')" 
+        :description="$t('featureGrid.long.description')" 
+        :tech-stack="techStack" 
+      />
     </div>
   </div>
 </template>

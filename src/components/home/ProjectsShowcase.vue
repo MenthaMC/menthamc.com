@@ -2,9 +2,9 @@
   <section class="projects-showcase">
     <div class="container">
       <div class="section-header">
-        <h2 class="section-title">我们的项目</h2>
+        <h2 class="section-title">{{ $t('home.projects.title') }}</h2>
         <p class="section-description">
-          探索我们为 Minecraft 社区开发的高质量开源项目
+          {{ $t('home.projects.description') }}
         </p>
       </div>
 
@@ -54,7 +54,7 @@
           <div class="project-actions">
             <button class="action-btn primary" @click="handleDownload(project)">
               <span class="btn-icon">⬇️</span>
-              <span>下载</span>
+              <span>{{ $t('home.projects.actions.download') }}</span>
             </button>
             <button class="action-btn secondary" @click="handleGitHub(project.githubUrl)">
               <span class="btn-icon">🔗</span>
@@ -67,9 +67,9 @@
       </div>
 
       <div class="more-projects">
-        <p class="more-text">还有更多项目正在开发中...</p>
+        <p class="more-text">{{ $t('home.projects.more.text') }}</p>
         <button class="more-btn" @click="handleViewAll">
-          <span>查看全部项目</span>
+          <span>{{ $t('home.projects.more.button') }}</span>
           <span class="btn-arrow">→</span>
         </button>
       </div>
@@ -78,21 +78,29 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 
 const router = useRouter();
+const { t } = useI18n();
 
-const projects = [
+const projects = computed(() => [
   {
     title: 'Mint',
-    description: 'Mint 是基于 Folia 的分支，致力于提供更好的整体性能和原版机制支持。经过深度优化，为大型服务器提供卓越的性能表现。',
+    description: t('projectsShowcase.projects.mint.description'),
     icon: '🌿',
     featured: true,
     status: {
       type: 'stable',
-      text: '稳定版'
+      text: t('projectsShowcase.projects.mint.status')
     },
-    features: ['多线程优化', '原版兼容', '高性能', '稳定可靠'],
+    features: [
+      t('projectsShowcase.projects.mint.features.0'),
+      t('projectsShowcase.projects.mint.features.1'),
+      t('projectsShowcase.projects.mint.features.2'),
+      t('projectsShowcase.projects.mint.features.3')
+    ],
     stats: {
       stars: '35',
       forks: '2',
@@ -102,14 +110,19 @@ const projects = [
   },
   {
     title: 'LemonMint',
-    description: '基于 Mint 制作的服务端，正努力让更多的 Bukkit 插件能够运行，并且在原基础上修复被破坏的特性和改进性能。',
+    description: t('projectsShowcase.projects.lemonMint.description'),
     icon: '🍋',
     featured: false,
     status: {
       type: 'beta',
-      text: '测试版'
+      text: t('projectsShowcase.projects.lemonMint.status')
     },
-    features: ['插件兼容', '性能优化', '特性修复', '持续更新'],
+    features: [
+      t('projectsShowcase.projects.lemonMint.features.0'),
+      t('projectsShowcase.projects.lemonMint.features.1'),
+      t('projectsShowcase.projects.lemonMint.features.2'),
+      t('projectsShowcase.projects.lemonMint.features.3')
+    ],
     stats: {
       stars: '9',
       forks: '1',
@@ -117,10 +130,10 @@ const projects = [
     },
     githubUrl: 'https://github.com/MenthaMC/LemonMint'
   }
-];
+]);
 
 const handleDownload = (project: any) => {
-  console.log('下载项目:', project.title);
+  console.log(t('home.projects.actions.download') + ':', project.title);
   router.push('/download');
 };
 
@@ -189,22 +202,28 @@ const handleViewAll = () => {
 }
 
 .projects-grid {
-  display: flex;
-  flex-direction: column;
+  /* display: flex;
   gap: 32px;
+  flex-wrap: wrap;
+  justify-content: center; */
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px;
   margin-bottom: 80px;
 }
 
 .project-card {
+  width: 515px;
   background: rgba(31, 41, 55, 0.8);
   border: 1px solid rgba(75, 85, 99, 0.3);
   border-radius: 24px;
   padding: 32px;
-  position: relative;
   backdrop-filter: blur(10px);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 32px;
 }
@@ -378,6 +397,7 @@ const handleViewAll = () => {
 }
 
 .project-actions {
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 12px;

@@ -1,5 +1,5 @@
 <template>
-  <div class="project-card" :class="{ 'featured-project': featured }">
+  <div class="project-card" :class="{ 'featured-project': featured }" :data-featured-text="$t('home.projects.featured')">
     <div class="project-header">
       <!-- 可以在这里添加项目图标或徽章 -->
     </div>
@@ -9,8 +9,8 @@
       <span v-for="stat in stats" :key="stat" class="stat-item">{{ stat }}</span>
     </div>
     <div class="project-actions">
-      <button class="btn-primary" @click="handleDetail">查看详情</button>
-      <button class="btn-secondary" @click="handleGitHub">GitHub</button>
+      <button class="btn-primary" @click="handleDetail">{{ $t('home.projects.actions.viewDetail') }}</button>
+      <button class="btn-secondary" @click="handleGitHub">{{ $t('home.projects.actions.github') }}</button>
     </div>
   </div>
 </template>
@@ -103,7 +103,7 @@ export default {
 }
 
 .featured-project::after {
-  content: '推荐';
+  content: attr(data-featured-text);
   position: absolute;
   top: 16px;
   right: 16px;

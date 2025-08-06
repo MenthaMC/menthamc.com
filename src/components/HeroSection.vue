@@ -2,7 +2,7 @@
   <section class="hero-section">
     <AnimatedTitle />
     <p class="hero-description" ref="heroDesc">
-      {{ $t('hero.description') }}
+      {{ $t('home.hero.description') }}
     </p>
     <HeroActions ref="heroActions" @download="handleDownload" @learn-more="handleLearnMore" />
 

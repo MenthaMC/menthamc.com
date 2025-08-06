@@ -39,10 +39,10 @@
                   d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
               </svg>
             </div>
-            <h3>Discord 社区</h3>
+            <h3>{{ t('community.platforms.discord.title') }}</h3>
             <p>{{ t('community.platforms.discord.description') }}</p>
             <div class="platform-stats">
-              <span>18,000+ 在线成员</span>
+              <span>{{ t('community.platforms.discord.stats') }}</span>
             </div>
             <button class="platform-btn">{{ t('community.platforms.discord.action') }}</button>
           </div>
@@ -54,7 +54,7 @@
                   d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
               </svg>
             </div>
-            <h3>GitHub 开源</h3>
+            <h3>{{ t('community.platforms.github.title') }}</h3>
             <p>{{ t('community.platforms.github.description') }}</p>
             <div class="platform-stats">
               <span>2,500+ Stars</span>
@@ -69,10 +69,10 @@
                   d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
               </svg>
             </div>
-            <h3>官方论坛</h3>
+            <h3>{{ t('community.platforms.forum.title') }}</h3>
             <p>{{ t('community.platforms.forum.description') }}</p>
             <div class="platform-stats">
-              <span>5,000+ 主题讨论</span>
+              <span>{{ t('community.platforms.forum.stats') }}</span>
             </div>
             <button class="platform-btn">{{ t('community.platforms.forum.action') }}</button>
           </div>
@@ -92,43 +92,43 @@
               <div class="step-item">
                 <div class="step-number">1</div>
                 <div class="step-content">
-                  <h4>Fork 项目</h4>
-                  <p>从 GitHub 上 Fork MenthaMC 项目到您的账户</p>
+                  <h4>{{ $t('home.community.contribution.steps.fork.title') }}</h4>
+                  <p>{{ $t('home.community.contribution.steps.fork.description') }}</p>
                 </div>
               </div>
               <div class="step-item">
                 <div class="step-number">2</div>
                 <div class="step-content">
-                  <h4>创建分支</h4>
-                  <p>为您的功能或修复创建一个新的分支</p>
+                  <h4>{{ t('community.contribute.steps.1.title') }}</h4>
+                  <p>{{ t('community.contribute.steps.1.description') }}</p>
                 </div>
               </div>
               <div class="step-item">
                 <div class="step-number">3</div>
                 <div class="step-content">
-                  <h4>提交 PR</h4>
-                  <p>完成开发后提交 Pull Request 等待审核</p>
+                  <h4>{{ t('community.contribute.steps.2.title') }}</h4>
+                  <p>{{ t('community.contribute.steps.2.description') }}</p>
                 </div>
               </div>
             </div>
-            <button class="cta-btn">开始贡献</button>
+            <button class="cta-btn">{{ t('community.contribute.action') }}</button>
           </div>
           <div class="guide-visual">
             <div class="code-preview">
               <div class="code-header">
-                <span class="code-title">贡献统计</span>
+                <span class="code-title">{{ $t('community.contribute.stats.title') }}</span>
               </div>
               <div class="code-content">
                 <div class="contrib-stat">
-                  <span class="contrib-label">本月提交</span>
+                  <span class="contrib-label">{{ $t('community.contribute.stats.commits') }}</span>
                   <span class="contrib-value">156</span>
                 </div>
                 <div class="contrib-stat">
-                  <span class="contrib-label">活跃贡献者</span>
+                  <span class="contrib-label">{{ $t('community.contribute.stats.contributors') }}</span>
                   <span class="contrib-value">42</span>
                 </div>
                 <div class="contrib-stat">
-                  <span class="contrib-label">已合并 PR</span>
+                  <span class="contrib-label">{{ $t('community.contribute.stats.mergedPRs') }}</span>
                   <span class="contrib-value">89</span>
                 </div>
               </div>
@@ -148,7 +148,7 @@ const { t } = useLanguage()
 
 
 onMounted(() => {
-  document.title = 'MenthaMC - 社区'
+  document.title = `MenthaMC - ${t('community.title')}`
 })
 </script>
 

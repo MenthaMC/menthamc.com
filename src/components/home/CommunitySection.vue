@@ -2,9 +2,9 @@
   <section class="community-section">
     <div class="container">
       <div class="section-header">
-        <h2 class="section-title">加入我们的社区</h2>
+        <h2 class="section-title">{{ $t('home.community.title') }}</h2>
         <p class="section-description">
-          与全球的 Minecraft 服务器管理员和开发者一起交流经验，获得技术支持
+          {{ $t('home.community.description') }}
         </p>
       </div>
 
@@ -24,7 +24,7 @@
               <h3 class="card-title">GitHub</h3>
             </div>
             <p class="card-description">
-              在 GitHub 上查看我们的源代码，提交问题报告，参与项目开发
+              {{ $t('home.community.github.description') }}
             </p>
             <div class="card-stats">
               <div class="stat">
@@ -39,7 +39,7 @@
           </div>
           <div class="card-right">
             <button class="card-action" @click="openGitHub">
-              <span>访问 GitHub</span>
+              <span>{{ $t('home.community.github.action') }}</span>
               <span class="action-arrow">→</span>
             </button>
           </div>
@@ -57,19 +57,19 @@
                 <polyline points="10,9 9,9 8,9" />
               </svg>
             </div>
-            <h3 class="card-title">文档中心</h3>
+            <h3 class="card-title">{{ $t('home.community.docs.title') }}</h3>
           </div>
           <p class="card-description">
-            详细的安装指南、配置说明和 API 文档，帮助你快速上手
+            {{ $t('home.community.docs.description') }}
           </p>
           <div class="card-features">
-            <div class="feature">📖 安装指南</div>
-            <div class="feature">⚙️ 配置说明</div>
-            <div class="feature">🔧 API 文档</div>
-            <div class="feature">❓ 常见问题</div>
+            <div class="feature">📖 {{ $t('home.community.docs.features.0') }}</div>
+            <div class="feature">⚙️ {{ $t('home.community.docs.features.1') }}</div>
+            <div class="feature">🔧 {{ $t('home.community.docs.features.2') }}</div>
+            <div class="feature">❓ {{ $t('home.community.docs.features.3') }}</div>
           </div>
           <button class="card-action" @click="openDocs">
-            <span>查看文档</span>
+            <span>{{ $t('home.community.docs.action') }}</span>
             <span class="action-arrow">→</span>
           </button>
         </div>
@@ -83,10 +83,10 @@
                   d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
               </svg>
             </div>
-            <h3 class="card-title">社区支持</h3>
+            <h3 class="card-title">{{ $t('home.community.support.title') }}</h3>
           </div>
           <p class="card-description">
-            遇到问题？我们的社区随时为你提供帮助和技术支持
+            {{ $t('home.community.support.description') }}
           </p>
           <div class="support-channels">
             <div class="channel">
@@ -95,11 +95,11 @@
             </div>
             <div class="channel">
               <span class="channel-icon">📧</span>
-              <span class="channel-name">邮件支持</span>
+              <span class="channel-name">{{ $t('home.community.support.channels.email') }}</span>
             </div>
           </div>
           <button class="card-action" @click="openSupport">
-            <span>获取支持</span>
+            <span>{{ $t('home.community.support.action') }}</span>
             <span class="action-arrow">→</span>
           </button>
         </div>
@@ -108,45 +108,45 @@
       <!-- 贡献指南 -->
       <div class="contribution-section">
         <div class="contribution-content">
-          <h3 class="contribution-title">想要贡献代码？</h3>
+          <h3 class="contribution-title">{{ $t('home.community.contribution.title') }}</h3>
           <p class="contribution-description">
-            我们欢迎所有形式的贡献！无论是代码、文档、测试还是反馈，都能帮助项目变得更好。
+            {{ $t('home.community.contribution.description') }}
           </p>
           <div class="contribution-steps">
             <div class="step">
               <div class="step-number">1</div>
               <div class="step-content">
-                <h4>Fork 项目</h4>
-                <p>在 GitHub 上 Fork 我们的项目到你的账户</p>
+                <h4>{{ $t('home.community.contribution.steps.0.title') }}</h4>
+                <p>{{ $t('home.community.contribution.steps.0.description') }}</p>
               </div>
             </div>
             <div class="step">
               <div class="step-number">2</div>
               <div class="step-content">
-                <h4>创建分支</h4>
-                <p>为你的功能或修复创建一个新的分支</p>
+                <h4>{{ $t('home.community.contribution.steps.1.title') }}</h4>
+                <p>{{ $t('home.community.contribution.steps.1.description') }}</p>
               </div>
             </div>
             <div class="step">
               <div class="step-number">3</div>
               <div class="step-content">
-                <h4>提交 PR</h4>
-                <p>完成开发后提交 Pull Request</p>
+                <h4>{{ $t('home.community.contribution.steps.2.title') }}</h4>
+                <p>{{ $t('home.community.contribution.steps.2.description') }}</p>
               </div>
             </div>
           </div>
           <button class="contribution-btn" @click="openContributing">
             <span class="btn-icon">🚀</span>
-            <span>开始贡献</span>
+            <span>{{ $t('home.community.contribution.action') }}</span>
           </button>
         </div>
       </div>
 
       <!-- 联系我们 -->
       <div class="contact-section">
-        <h3 class="contact-title">联系我们</h3>
+        <h3 class="contact-title">{{ $t('home.community.contact.title') }}</h3>
         <p class="contact-description">
-          有任何问题或建议？随时与我们联系
+          {{ $t('home.community.contact.description') }}
         </p>
         <div class="contact-info">
           <div class="contact-item">
