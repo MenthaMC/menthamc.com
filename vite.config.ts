@@ -13,5 +13,14 @@ export default defineConfig({
     },
     server: {
         host: '0.0.0.0',
+        proxy: {
+            '^/api': {
+                target: 'http://api.github.com',
+                changeOrigin: true,
+                rewrite:(path) => {                    
+                    return path.replace(/^\/api/,'')          
+                }
+            }
+        }
     },
 })
