@@ -27,7 +27,6 @@
 </template>
 
 <script setup lang="ts">
-import { token } from '@/main'
 import type { GithubRelease, GithubReleases } from '@/types'
 import { renderSize } from '@/utils/helpers'
 import { callApi } from '@zayne-labs/callapi'
@@ -45,7 +44,7 @@ onMounted(async () => {
     // Release
     const totalReleases = '/api/repos/MenthaMC/Mint/releases'
     const totalReleases_call = await callApi<GithubReleases>(totalReleases, {
-        signal: controller.signal, headers: {"request_token": token}
+        signal: controller.signal
     })
 
     clearTimeout(timeoutId)
