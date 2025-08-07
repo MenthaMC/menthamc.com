@@ -15,8 +15,7 @@ export default defineConfig({
         host: '0.0.0.0',
         proxy: {
             '^/api': {
-                target: 'http://api.github.com',
-                changeOrigin: true,
+                target: 'http://localhost:8080',
                 rewrite:(path) => {                    
                     return path.replace(/^\/api/,'')          
                 }

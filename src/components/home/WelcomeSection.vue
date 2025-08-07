@@ -57,7 +57,6 @@ import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { callApi } from '@zayne-labs/callapi'
 import type { GithubRepo, TimeSeriesData } from '@/types'
-import { token } from '@/main'
 
 const router = useRouter()
 
@@ -99,7 +98,7 @@ onMounted(async () => {
     ]
 
     const repos_promises = repos.map((url) =>
-        callApi<GithubRepo>(url, { signal: controller.signal, headers: {"request_token": token} }).then((response) => {
+        callApi<GithubRepo>(url, { signal: controller.signal }).then((response) => {
             if (response.data === null) {
                 throw new Error(`Unable to retrieve time series for ${url}`)
             }

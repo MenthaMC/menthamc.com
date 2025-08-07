@@ -5,8 +5,6 @@ import router from './router'
 import './styles/components.css'
 import './styles/mobile.css'
 
-export const token = ""
-
 const app = createApp(App)
 app.use(router)
 app.use(i18n)
