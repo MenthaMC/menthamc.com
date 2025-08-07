@@ -1,155 +1,172 @@
 /* CSS 变量定义 */
 :root {
-  /* 颜色系统 */
-  --color-primary: #10b981;
-  --color-secondary: #3b82f6;
-  --color-accent: #a855f7;
-  --color-info: #0ea5e9;
-  --color-text-primary: #ffffff;
-  --color-text-secondary: #d1d5db;
-  --color-text-muted: #9ca3af;
-  --color-bg-primary: #0f0f0f;
-  --color-bg-secondary: #1a1a1a;
+    /* 颜色系统 */
+    --color-primary: #10b981;
+    --color-secondary: #3b82f6;
+    --color-accent: #a855f7;
+    --color-info: #0ea5e9;
+    --color-text-primary: #ffffff;
+    --color-text-secondary: #d1d5db;
+    --color-text-muted: #9ca3af;
+    --color-bg-primary: #0f0f0f;
+    --color-bg-secondary: #1a1a1a;
 
-  /* 渐变 */
-  --gradient-primary: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
-  --gradient-accent: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-accent) 100%);
-  --gradient-info: linear-gradient(135deg, var(--color-info) 0%, var(--color-secondary) 100%);
-  --gradient-bg: linear-gradient(135deg, var(--color-bg-primary) 0%, var(--color-bg-secondary) 50%, var(--color-bg-primary) 100%);
+    /* 渐变 */
+    --gradient-primary: linear-gradient(
+        135deg,
+        var(--color-primary) 0%,
+        var(--color-secondary) 100%
+    );
+    --gradient-accent: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-accent) 100%);
+    --gradient-info: linear-gradient(135deg, var(--color-info) 0%, var(--color-secondary) 100%);
+    --gradient-bg: linear-gradient(
+        135deg,
+        var(--color-bg-primary) 0%,
+        var(--color-bg-secondary) 50%,
+        var(--color-bg-primary) 100%
+    );
 
-  /* 阴影 */
-  --shadow-primary: 0 8px 25px rgba(16, 185, 129, 0.4);
-  --shadow-primary-hover: 0 15px 35px rgba(16, 185, 129, 0.6);
-  --shadow-secondary: 0 8px 25px rgba(59, 130, 246, 0.4);
-  --shadow-accent: 0 8px 25px rgba(168, 85, 247, 0.4);
-  --shadow-info: 0 8px 25px rgba(14, 165, 233, 0.4);
+    /* 阴影 */
+    --shadow-primary: 0 8px 25px rgba(16, 185, 129, 0.4);
+    --shadow-primary-hover: 0 15px 35px rgba(16, 185, 129, 0.6);
+    --shadow-secondary: 0 8px 25px rgba(59, 130, 246, 0.4);
+    --shadow-accent: 0 8px 25px rgba(168, 85, 247, 0.4);
+    --shadow-info: 0 8px 25px rgba(14, 165, 233, 0.4);
 
-  /* 过渡 */
-  --transition-fast: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-bounce: 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    /* 过渡 */
+    --transition-fast: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
 
-  /* 间距 */
-  --spacing-xs: 0.5rem;
-  --spacing-sm: 1rem;
-  --spacing-md: 1.5rem;
-  --spacing-lg: 2rem;
-  --spacing-xl: 2.5rem;
-  --spacing-2xl: 3rem;
+    /* 间距 */
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 1rem;
+    --spacing-md: 1.5rem;
+    --spacing-lg: 2rem;
+    --spacing-xl: 2.5rem;
+    --spacing-2xl: 3rem;
 
-  /* 字体大小 */
-  --font-size-xs: 0.75rem;
-  --font-size-sm: 0.9rem;
-  --font-size-base: 1rem;
-  --font-size-lg: 1.1rem;
-  --font-size-xl: 1.25rem;
-  --font-size-2xl: 2.2rem;
-  --font-size-3xl: 2.8rem;
-  --font-size-4xl: 3.5rem;
-  --font-size-5xl: 4rem;
-  --font-size-6xl: 4.2rem;
+    /* 字体大小 */
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.9rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.1rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 2.2rem;
+    --font-size-3xl: 2.8rem;
+    --font-size-4xl: 3.5rem;
+    --font-size-5xl: 4rem;
+    --font-size-6xl: 4.2rem;
 
-  /* 圆角 */
-  --radius-sm: 12px;
-  --radius-md: 14px;
-  --radius-lg: 16px;
-  --radius-xl: 20px;
+    /* 圆角 */
+    --radius-sm: 12px;
+    --radius-md: 14px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
 
-  /* 断点 */
-  --breakpoint-sm: 480px;
-  --breakpoint-md: 768px;
-  --breakpoint-lg: 1024px;
-  --breakpoint-xl: 1025px;
+    /* 断点 */
+    --breakpoint-sm: 480px;
+    --breakpoint-md: 768px;
+    --breakpoint-lg: 1024px;
+    --breakpoint-xl: 1025px;
 }
 
 /* 全局重置 */
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    scrollbar-width: none;
 }
 
 html {
-  height: 100%;
-  overflow-x: hidden;
+    height: 100%;
+    overflow-x: hidden;
 }
 
-html, body {
-  background: var(--color-bg-primary) !important;
-  color: var(--color-text-primary);
-  line-height: 1.6;
-  overflow-x: hidden;
-  min-height: 100vh;
-  height: 100%;
+html,
+body {
+    background: var(--color-bg-primary) !important;
+    color: var(--color-text-primary);
+    line-height: 1.6;
+    overflow-x: hidden;
+    min-height: 100vh;
+    height: 100%;
 }
 
 /* 应用根容器 */
 #app {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  min-height: 100vh;
-  height: 100%;
-  position: relative;
-  overflow-x: hidden;
-  transition: all var(--transition-fast);
-  width: 100%;
-  background: var(--gradient-bg);
+    font-family:
+        'Inter',
+        -apple-system,
+        BlinkMacSystemFont,
+        'Segoe UI',
+        Roboto,
+        sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+    height: 100%;
+    position: relative;
+    overflow-x: hidden;
+    transition: all var(--transition-fast);
+    width: 100%;
+    background: var(--gradient-bg);
 }
 
 /* 背景装饰 */
 #app::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background:
-    radial-gradient(circle at 20% 30%, rgba(16, 185, 129, 0.12) 0%, transparent 50%),
-    radial-gradient(circle at 80% 70%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 40% 80%, rgba(168, 85, 247, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 60% 20%, rgba(14, 165, 233, 0.06) 0%, transparent 40%);
-  pointer-events: none;
-  z-index: -1;
-  animation: backgroundPulse 15s infinite alternate;
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+        radial-gradient(circle at 20% 30%, rgba(16, 185, 129, 0.12) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 80%, rgba(168, 85, 247, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 60% 20%, rgba(14, 165, 233, 0.06) 0%, transparent 40%);
+    pointer-events: none;
+    z-index: -1;
+    animation: backgroundPulse 15s infinite alternate;
 }
 
 @keyframes backgroundPulse {
-  0% {
-    opacity: 0.8;
-    background-position: 0% 0%;
-  }
-  50% {
-    opacity: 1;
-    background-position: 10% 10%;
-  }
-  100% {
-    opacity: 0.9;
-    background-position: 0% 0%;
-  }
+    0% {
+        opacity: 0.8;
+        background-position: 0% 0%;
+    }
+    50% {
+        opacity: 1;
+        background-position: 10% 10%;
+    }
+    100% {
+        opacity: 0.9;
+        background-position: 0% 0%;
+    }
 }
 
 /* 布局组件 */
 .main-content {
-  padding-top: 120px;
-  flex: 1;
-  width: 100%;
+    padding-top: 120px;
+    flex: 1;
+    width: 100%;
 }
 
 .container {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
 }
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-  .main-content {
-    padding-top: 80px;
-  }
+    .main-content {
+        padding-top: 80px;
+    }
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
-  .main-content {
-    padding-top: 100px;
-  }
+    .main-content {
+        padding-top: 100px;
+    }
 }

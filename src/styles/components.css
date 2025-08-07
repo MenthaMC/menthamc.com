@@ -2,60 +2,60 @@
 
 /* 按钮组件 */
 .btn {
-  padding: 14px 32px;
-  font-weight: 600;
-  font-size: 16px;
-  cursor: pointer;
-  border: none;
-  position: relative;
-  overflow: hidden;
-  transition: all var(--transition-smooth);
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 120px;
-  border-radius: var(--radius-md);
+    padding: 14px 32px;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    position: relative;
+    overflow: hidden;
+    transition: all var(--transition-smooth);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 120px;
+    border-radius: var(--radius-md);
 }
 
 .btn:focus {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
 }
 
 .btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 .btn-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  transition: all var(--transition-smooth);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    transition: all var(--transition-smooth);
 }
 
 /* 文本组件 */
 .text-gradient {
-  background: var(--gradient-primary);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 /* 容器组件 */
 .container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 var(--spacing-md);
-  width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-md);
+    width: 100%;
 }
 
 /* 响应式工具类 */
 @media (max-width: 768px) {
-  .container {
-    padding: 0 var(--spacing-sm);
-  }
+    .container {
+        padding: 0 var(--spacing-sm);
+    }
 }

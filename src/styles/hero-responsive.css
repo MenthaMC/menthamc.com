@@ -1,264 +1,264 @@
 /* 响应式设计 */
 @media (max-width: 1024px) {
-  .features-grid {
-    max-width: 900px;
-    gap: 1.25rem;
-  }
+    .features-grid {
+        max-width: 900px;
+        gap: 1.25rem;
+    }
 
-  .feature-card {
-    padding: 1.5rem;
-  }
+    .feature-card {
+        padding: 1.5rem;
+    }
 
-  .feature-number,
-  .feature-highlight {
-    font-size: 3.5rem;
-  }
+    .feature-number,
+    .feature-highlight {
+        font-size: 3.5rem;
+    }
 
-  .projects-grid {
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 1.5rem;
-  }
+    .projects-grid {
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 1.5rem;
+    }
 }
 
 @media (max-width: 768px) {
-  .hero-section {
-    padding: var(--spacing-sm) 0;
-    min-height: calc(100vh - 120px);
-  }
+    .hero-section {
+        padding: var(--spacing-sm) 0;
+        min-height: calc(100vh - 120px);
+    }
 
-  .hero-description {
-    font-size: var(--font-size-lg);
-    padding: 0 var(--spacing-sm);
-    margin-bottom: var(--spacing-lg);
-  }
+    .hero-description {
+        font-size: var(--font-size-lg);
+        padding: 0 var(--spacing-sm);
+        margin-bottom: var(--spacing-lg);
+    }
 
-  .features-grid {
-    grid-template-columns: 1fr;
-    grid-template-rows: repeat(4, auto);
-    gap: 1rem;
-    max-width: 100%;
-  }
+    .features-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(4, auto);
+        gap: 1rem;
+        max-width: 100%;
+    }
 
-  .free-card,
-  .modern-card,
-  .components-card {
-    grid-column: 1;
-    grid-row: auto;
-  }
+    .free-card,
+    .modern-card,
+    .components-card {
+        grid-column: 1;
+        grid-row: auto;
+    }
 
-  .long-card {
-    grid-column: 1;
-    grid-row: auto;
-    margin-top: 0;
-  }
+    .long-card {
+        grid-column: 1;
+        grid-row: auto;
+        margin-top: 0;
+    }
 
-  .long-card-content {
-    flex-direction: column;
-    text-align: center;
-    gap: 1.5rem;
-  }
+    .long-card-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 1.5rem;
+    }
 
-  .long-card-left {
-    padding-right: 0;
-  }
+    .long-card-left {
+        padding-right: 0;
+    }
 
-  .tech-stack {
-    justify-content: center;
-  }
+    .tech-stack {
+        justify-content: center;
+    }
 
-  .feature-card {
-    padding: 1.5rem;
-    min-height: 200px;
-  }
+    .feature-card {
+        padding: 1.5rem;
+        min-height: 200px;
+    }
 
-  .long-card {
-    min-height: 180px;
-    padding: 1.5rem;
-  }
+    .long-card {
+        min-height: 180px;
+        padding: 1.5rem;
+    }
 
-  .feature-number,
-  .feature-highlight {
-    font-size: 3rem;
-  }
+    .feature-number,
+    .feature-highlight {
+        font-size: 3rem;
+    }
 
-  .feature-title {
-    font-size: 1.3rem;
-  }
+    .feature-title {
+        font-size: 1.3rem;
+    }
 
-  .feature-description {
-    font-size: 0.9rem;
-  }
+    .feature-description {
+        font-size: 0.9rem;
+    }
 
-  .long-card .feature-title {
-    font-size: 1.4rem;
-  }
+    .long-card .feature-title {
+        font-size: 1.4rem;
+    }
 
-  .long-card .feature-description {
-    font-size: 1rem;
-  }
+    .long-card .feature-description {
+        font-size: 1rem;
+    }
 
-  .main-projects-section {
-    padding: 3rem 0;
-    margin-top: 2rem;
-  }
+    .main-projects-section {
+        padding: 3rem 0;
+        margin-top: 2rem;
+    }
 
-  .projects-title {
-    font-size: 2.5rem;
-    margin-bottom: 2rem;
-  }
+    .projects-title {
+        font-size: 2.5rem;
+        margin-bottom: 2rem;
+    }
 
-  .projects-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
+    .projects-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
 
-  .project-card {
-    padding: 1.5rem;
-  }
+    .project-card {
+        padding: 1.5rem;
+    }
 
-  .project-actions {
-    flex-direction: column;
-  }
+    .project-actions {
+        flex-direction: column;
+    }
 
-  .btn-primary,
-  .btn-secondary {
-    width: 100%;
-    text-align: center;
-  }
+    .btn-primary,
+    .btn-secondary {
+        width: 100%;
+        text-align: center;
+    }
 }
 
 @media (max-width: 480px) {
-  .hero-description {
-    font-size: var(--font-size-base);
-    padding: 0 var(--spacing-xs);
-  }
+    .hero-description {
+        font-size: var(--font-size-base);
+        padding: 0 var(--spacing-xs);
+    }
 
-  .features-section {
-    padding: 2rem 0;
-  }
+    .features-section {
+        padding: 2rem 0;
+    }
 
-  .feature-card {
-    padding: 1.25rem;
-    min-height: 180px;
-  }
+    .feature-card {
+        padding: 1.25rem;
+        min-height: 180px;
+    }
 
-  .long-card {
-    min-height: 160px;
-    padding: 1.25rem;
-  }
+    .long-card {
+        min-height: 160px;
+        padding: 1.25rem;
+    }
 
-  .feature-number,
-  .feature-highlight {
-    font-size: 2.5rem;
-  }
+    .feature-number,
+    .feature-highlight {
+        font-size: 2.5rem;
+    }
 
-  .percentage,
-  .plus {
-    font-size: 2rem;
-  }
+    .percentage,
+    .plus {
+        font-size: 2rem;
+    }
 
-  .feature-title {
-    font-size: 1.2rem;
-  }
+    .feature-title {
+        font-size: 1.2rem;
+    }
 
-  .feature-description {
-    font-size: 0.85rem;
-  }
+    .feature-description {
+        font-size: 0.85rem;
+    }
 
-  .long-card .feature-title {
-    font-size: 1.25rem;
-  }
+    .long-card .feature-title {
+        font-size: 1.25rem;
+    }
 
-  .long-card .feature-description {
-    font-size: 0.9rem;
-  }
+    .long-card .feature-description {
+        font-size: 0.9rem;
+    }
 
-  .tech-item {
-    font-size: 0.8rem;
-    padding: 0.4rem 0.8rem;
-  }
+    .tech-item {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
+    }
 
-  .projects-title {
-    font-size: 2rem;
-  }
+    .projects-title {
+        font-size: 2rem;
+    }
 
-  .project-card {
-    padding: 1.25rem;
-  }
+    .project-card {
+        padding: 1.25rem;
+    }
 
-  .project-title {
-    font-size: 1.3rem;
-  }
+    .project-title {
+        font-size: 1.3rem;
+    }
 
-  .project-description {
-    font-size: 0.9rem;
-  }
+    .project-description {
+        font-size: 0.9rem;
+    }
 
-  .project-stats {
-    gap: 0.5rem;
-  }
+    .project-stats {
+        gap: 0.5rem;
+    }
 
-  .stat-item {
-    font-size: 0.8rem;
-    padding: 0.3rem 0.6rem;
-  }
+    .stat-item {
+        font-size: 0.8rem;
+        padding: 0.3rem 0.6rem;
+    }
 }
 
 @media (max-width: 360px) {
-  .feature-card {
-    padding: 1rem;
-    min-height: 160px;
-  }
+    .feature-card {
+        padding: 1rem;
+        min-height: 160px;
+    }
 
-  .long-card {
-    min-height: 140px;
-    padding: 1rem;
-  }
+    .long-card {
+        min-height: 140px;
+        padding: 1rem;
+    }
 
-  .feature-number,
-  .feature-highlight {
-    font-size: 2rem;
-  }
+    .feature-number,
+    .feature-highlight {
+        font-size: 2rem;
+    }
 
-  .percentage,
-  .plus {
-    font-size: 1.5rem;
-  }
+    .percentage,
+    .plus {
+        font-size: 1.5rem;
+    }
 
-  .feature-title {
-    font-size: 1.1rem;
-  }
+    .feature-title {
+        font-size: 1.1rem;
+    }
 
-  .feature-description {
-    font-size: 0.8rem;
-  }
+    .feature-description {
+        font-size: 0.8rem;
+    }
 
-  .long-card .feature-title {
-    font-size: 1.1rem;
-  }
+    .long-card .feature-title {
+        font-size: 1.1rem;
+    }
 
-  .long-card .feature-description {
-    font-size: 0.8rem;
-  }
+    .long-card .feature-description {
+        font-size: 0.8rem;
+    }
 
-  .tech-item {
-    font-size: 0.75rem;
-    padding: 0.3rem 0.6rem;
-  }
+    .tech-item {
+        font-size: 0.75rem;
+        padding: 0.3rem 0.6rem;
+    }
 
-  .projects-title {
-    font-size: 1.8rem;
-  }
+    .projects-title {
+        font-size: 1.8rem;
+    }
 
-  .project-card {
-    padding: 1rem;
-  }
+    .project-card {
+        padding: 1rem;
+    }
 
-  .project-title {
-    font-size: 1.2rem;
-  }
+    .project-title {
+        font-size: 1.2rem;
+    }
 
-  .project-description {
-    font-size: 0.8rem;
-  }
+    .project-description {
+        font-size: 0.8rem;
+    }
 }

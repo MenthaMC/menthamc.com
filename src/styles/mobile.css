@@ -2,7 +2,7 @@
 
 /* 基础移动端重置 */
 * {
-  -webkit-tap-highlight-color: transparent;
+    -webkit-tap-highlight-color: transparent;
 }
 
 /* 允许文本选择的元素 */
@@ -14,52 +14,51 @@ h3,
 h4,
 h5,
 h6 {
-  -webkit-user-select: text;
-  -moz-user-select: text;
-  -ms-user-select: text;
-  user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
 }
 
 /* 移动端滚动优化 */
 html {
-  -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
 }
 
 /* 移动端按钮优化 */
 @media (max-width: 767.98px) {
-
-  button,
-  .btn {
-    min-height: 44px;
-    min-width: 44px;
-    font-size: 16px;
-    /* 防止iOS缩放 */
-  }
+    button,
+    .btn {
+        min-height: 44px;
+        min-width: 44px;
+        font-size: 16px;
+        /* 防止iOS缩放 */
+    }
 }
 
 /* 移动端图片优化 */
 img {
-  max-width: 100%;
-  height: auto;
+    max-width: 100%;
+    height: auto;
 }
 
 /* 移动端动画性能优化 */
 @media (max-width: 767.98px) {
-  .animate {
-    will-change: transform, opacity;
-  }
+    .animate {
+        will-change: transform, opacity;
+    }
 
-  .animate:not(:hover):not(:focus):not(:active) {
-    will-change: auto;
-  }
+    .animate:not(:hover):not(:focus):not(:active) {
+        will-change: auto;
+    }
 }
 
 /* 移动端减少动画模式 */
 @media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
 }

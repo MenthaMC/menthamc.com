@@ -1,41 +1,67 @@
 // 动画配置类型
 export interface AnimationConfig {
-  delay: number
-  duration: number
-  ease: string
+    delay: number
+    duration: number
+    ease: string
 }
 
 // AnimatedTitle组件Props类型
 export interface AnimatedTitleProps {
-  text?: string
-  animationDelay?: number
+    text?: string
+    animationDelay?: number
 }
 
 // HeroActions组件Props类型
 export interface HeroActionsProps {
-  onDownload?: () => void
-  onLearnMore?: () => void
+    onDownload?: () => void
+    onLearnMore?: () => void
 }
 
 // HeroActions组件实例类型
 export interface HeroActions {
-  $el: HTMLElement
+    $el: HTMLElement
 }
 
 // 路由配置类型
 export interface RouteConfig {
-  path: string
-  name: string
-  component: any
-  meta?: {
-    title?: string
-    requiresAuth?: boolean
-  }
+    path: string
+    name: string
+    component: any
+    meta?: {
+        title?: string
+        requiresAuth?: boolean
+    }
 }
 
 // 语言配置类型
 export interface LanguageConfig {
-  code: 'zh-CN' | 'en-US'
-  name: string
-  flag: string
+    code: 'zh-CN' | 'en-US'
+    name: string
+    flag: string
+}
+
+export type TimeValuePair = [number, number]
+export type TimeSeriesData = TimeValuePair[]
+
+export type GithubRepo = GithubRepoInterface
+
+export interface GithubRepoInterface {
+    stargazers_count: number
+}
+
+export type GithubReleases = [GithubReleaseInferface]
+export type GithubRelease = GithubReleaseInferface
+
+export interface GithubReleaseInferface {
+    tag_name: string
+    published_at: string
+    assets: GithubReleaseAssetses
+}
+
+export type GithubReleaseAssetses = [GithubReleaseAssets]
+
+export interface GithubReleaseAssets {
+    size: string
+    download_count: number
+    browser_download_url: string
 }

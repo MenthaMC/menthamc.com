@@ -27,10 +27,12 @@
 本网站完全支持多语言功能：
 
 ### 支持的语言
+
 - 🇨🇳 **简体中文** (zh-CN) - 默认语言
 - 🇺🇸 **English** (en-US) - 英文支持
 
 ### 多语言特性
+
 - ✅ 自动检测浏览器语言偏好
 - ✅ 实时语言切换，无需刷新页面
 - ✅ 语言偏好本地存储
@@ -38,6 +40,7 @@
 - ✅ 完整的页面翻译覆盖
 
 ### 语言文件结构
+
 ```
 src/locales/
 ├── index.ts      # i18n 配置和工具函数
@@ -118,6 +121,7 @@ npm run type-check
 ## 🛠️ 技术栈
 
 ### 核心技术
+
 - **Vue 3** - 渐进式 JavaScript 框架
 - **TypeScript** - JavaScript 的超集，提供静态类型检查
 - **Vite** - 下一代前端构建工具
@@ -125,6 +129,7 @@ npm run type-check
 - **Vue I18n** - Vue.js 国际化插件
 
 ### 开发工具
+
 - **ESLint** - 代码质量检查
 - **Prettier** - 代码格式化
 - **Husky** - Git hooks 管理
@@ -140,12 +145,14 @@ npm run type-check
 ## 🎨 设计特色
 
 ### 视觉设计
+
 - 深色主题设计，符合开发者审美
 - 渐变色彩搭配，现代化视觉效果
 - 毛玻璃效果和阴影，增强层次感
 - 流畅的动画过渡，提升用户体验
 
 ### 交互设计
+
 - 响应式布局，适配各种设备
 - 平滑的页面切换动画
 - 悬停效果和微交互
@@ -154,6 +161,7 @@ npm run type-check
 ## 🌐 部署
 
 ### GitHub Pages
+
 项目配置了 GitHub Actions 自动部署到 GitHub Pages：
 
 1. 推送代码到 `main` 分支
@@ -162,6 +170,7 @@ npm run type-check
 4. 通过 GitHub Pages 访问
 
 ### 其他部署方式
+
 - **Vercel** - 零配置部署
 - **Netlify** - 持续部署
 - **服务器部署** - 构建后上传到服务器
@@ -171,6 +180,7 @@ npm run type-check
 我们欢迎所有形式的贡献！
 
 ### 如何贡献
+
 1. Fork 本仓库
 2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
 3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
@@ -178,6 +188,7 @@ npm run type-check
 5. 创建 Pull Request
 
 ### 开发规范
+
 - 遵循 ESLint 和 Prettier 配置
 - 提交信息使用约定式提交格式
 - 添加适当的类型注解
