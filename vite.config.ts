@@ -15,7 +15,7 @@ export default defineConfig({
         host: '0.0.0.0',
         proxy: {
             '^/api': {
-                target: 'http://43.163.120.17:8080',
+                target: 'http://api.menthamc.com:8080',
                 rewrite:(path) => {                    
                     return path.replace(/^\/api/,'')          
                 }
