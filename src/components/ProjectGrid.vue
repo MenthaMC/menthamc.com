@@ -35,14 +35,14 @@ const projects = computed(() => [
     {
         title: t('home.projects.items.mint.title'),
         description: t('home.projects.items.mint.description'),
-        stats: t('home.projects.items.mint.stats'),
+        stats: t('home.projects.items.mint.stats').split(',').map(s => s.trim()),
         githubUrl: 'https://github.com/MenthaMC/Mint',
         featured: true,
     },
     {
         title: t('home.projects.items.lemonMint.title'),
         description: t('home.projects.items.lemonMint.description'),
-        stats: t('home.projects.items.lemonMint.stats'),
+        stats: t('home.projects.items.lemonMint.stats').split(',').map(s => s.trim()),
         githubUrl: 'https://github.com/MenthaMC/LemonMint',
         featured: false,
     },

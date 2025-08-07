@@ -27,7 +27,7 @@
 interface Props {
     title: string
     description: string
-    stats: string
+    stats: string[]
     githubUrl: string
     featured?: boolean
 }
