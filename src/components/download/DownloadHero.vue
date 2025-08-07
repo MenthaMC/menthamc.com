@@ -7,7 +7,7 @@
                     {{ $t('download.hero.title') }} <span class="brand-name">Mint</span>
                 </h1>
                 <p class="hero-subtitle">{{ $t('download.hero.subtitle') }}</p>
-                <div class="quick-stats">
+                <!-- <div class="quick-stats">
                     <div class="stat-item">
                         <span class="stat-number">{{ latest_version }}</span>
                         <span class="stat-label">{{ $t('download.stats.versionLabel') }}</span>
@@ -20,14 +20,14 @@
                         <span class="stat-number">{{ download_cout }}</span>
                         <span class="stat-label">{{ $t('download.stats.downloadsLabel') }}</span>
                     </div>
-                </div>
+                </div> -->
             </div>
         </div>
     </section>
 </template>
 
 <script setup lang="ts">
-import type { GithubRelease, GithubReleases } from '@/types'
+import type { GithubRelease } from '@/types'
 import { renderSize } from '@/utils/helpers'
 import { callApi } from '@zayne-labs/callapi'
 import { onMounted, ref } from 'vue'
@@ -41,21 +41,21 @@ onMounted(async () => {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 5000)
 
-    // Release
-    const totalReleases = '/api/repos/MenthaMC/Mint/releases'
-    const totalReleases_call = await callApi<GithubReleases>(totalReleases, {
-        signal: controller.signal
-    })
+    // // Release
+    // const totalReleases = '/api/repos/MenthaMC/Mint/releases'
+    // const totalReleases_call = await callApi<GithubReleases>(totalReleases, {
+    //     signal: controller.signal
+    // })
 
-    clearTimeout(timeoutId)
+    // clearTimeout(timeoutId)
 
-    totalReleases_call.data?.forEach((v) => {
-        v.assets.forEach((assets) => {
-            download_cout_buffer.value = download_cout.value + assets.download_count
-        })
+    // totalReleases_call.data?.forEach((v) => {
+    //     v.assets.forEach((assets) => {
+    //         download_cout_buffer.value = download_cout.value + assets.download_count
+    //     })
 
-        download_cout.value = download_cout_buffer.value
-    })
+    //     download_cout.value = download_cout_buffer.value
+    // })
 
     const release = '/api/repos/MenthaMC/Mint/releases/latest'
     const release_call = await callApi<GithubRelease>(release, { signal: controller.signal })
