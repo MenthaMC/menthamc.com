@@ -195,7 +195,7 @@ const fetchReleaseInfo = async () => {
             releaseDate.value = new Date(response.data.published_at).toLocaleDateString('zh-CN')
         }
     } catch (error) {
-        if (error.name !== 'AbortError') {
+        if (error instanceof Error && error.name !== 'AbortError') {
             console.warn('Failed to fetch release info:', error)
         }
     } finally {
