@@ -42,12 +42,23 @@ const router = createRouter({
     },
 })
 
-// 路由守卫 - 设置页面标题
+// 路由守卫 - 设置页面标题和过渡效果
 router.beforeEach((to, from, next) => {
     if (to.meta?.title) {
         document.title = to.meta.title as string
     }
+    
+    // 添加页面切换时的loading状态
+    document.body.classList.add('page-transitioning')
     next()
+})
+
+// 路由切换完成后的处理
+router.afterEach(() => {
+    // 移除loading状态
+    setTimeout(() => {
+        document.body.classList.remove('page-transitioning')
+    }, 250) // 与动画时长保持一致
 })
 
 export default router

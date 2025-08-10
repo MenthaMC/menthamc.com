@@ -2,7 +2,11 @@
     <Navbar />
 
     <main class="main-content">
-        <router-view />
+        <router-view v-slot="{ Component, route }">
+            <transition name="page" mode="out-in">
+                <component :is="Component" :key="route.path" />
+            </transition>
+        </router-view>
     </main>
     <Footer />
 </template>
@@ -52,5 +56,65 @@ import Navbar from './components/Navbar.vue'
     .container {
         padding: 0 0.75rem;
     }
+}
+
+/* 页面切换过渡动画 */
+.page-enter-active,
+.page-leave-active {
+    transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.page-enter-from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+}
+
+.page-leave-to {
+    opacity: 0;
+    transform: translateY(-20px) scale(1.02);
+}
+
+.page-enter-to,
+.page-leave-from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+/* 为不同设备优化动画性能 */
+@media (prefers-reduced-motion: reduce) {
+    .page-enter-active,
+    .page-leave-active {
+        transition: opacity 0.2s ease;
+    }
+    
+    .page-enter-from,
+    .page-leave-to {
+        transform: none;
+    }
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+    .page-enter-active,
+    .page-leave-active {
+        transition: all 0.2s ease-out;
+    }
+    
+    .page-enter-from {
+        transform: translateX(20px);
+    }
+    
+    .page-leave-to {
+        transform: translateX(-20px);
+    }
+}
+
+/* 确保动画期间的层级关系 */
+.page-enter-active {
+    z-index: 2;
+}
+
+.page-leave-active {
+    z-index: 1;
 }
 </style>

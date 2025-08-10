@@ -170,3 +170,33 @@ body {
         padding-top: 100px;
     }
 }
+
+/* 页面切换时的全局优化 */
+body.page-transitioning {
+    overflow-x: hidden;
+}
+
+/* 确保页面切换时的平滑滚动 */
+html {
+    scroll-behavior: smooth;
+}
+
+/* 为页面切换优化的性能设置 */
+.main-content {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+}
+
+/* 页面切换动画的性能优化 */
+.page-enter-active,
+.page-leave-active {
+    will-change: transform, opacity;
+}
+
+/* 减少动画期间的重绘 */
+.page-enter-active *,
+.page-leave-active * {
+    backface-visibility: hidden;
+    transform: translateZ(0);
+}

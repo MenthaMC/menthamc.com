@@ -1,167 +1,544 @@
 <template>
     <section class="hero-section">
+        <!-- 动态背景网格 -->
+        <div class="grid-background">
+            <div class="grid-line" v-for="i in 20" :key="'h-' + i" :style="{ top: (i * 5) + '%' }" data-direction="horizontal"></div>
+            <div class="grid-line" v-for="i in 20" :key="'v-' + i" :style="{ left: (i * 5) + '%' }" data-direction="vertical"></div>
+        </div>
+        
+        <!-- 浮动几何图形 -->
+        <div class="floating-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
+            <div class="shape shape-4"></div>
+        </div>
+        
         <div class="hero-container">
             <div class="hero-content">
-                <div class="badge-dot"></div>
-                <h1 class="hero-title">
-                    {{ $t('download.hero.title') }} <span class="brand-name">Mint</span>
-                </h1>
-                <p class="hero-subtitle">{{ $t('download.hero.subtitle') }}</p>
-                <!-- <div class="quick-stats">
-                    <div class="stat-item">
-                        <span class="stat-number">{{ latest_version }}</span>
-                        <span class="stat-label">{{ $t('download.stats.versionLabel') }}</span>
+                
+                <!-- 主标题区域 -->
+                <div class="title-section">
+                    <div class="title-backdrop">
+                        <h1 class="hero-title">
+                            <span class="title-line">{{ $t('download.hero.title') }}</span>
+                            <span class="brand-highlight">
+                                <span class="brand-text">Mint</span>
+                                <div class="brand-underline"></div>
+                            </span>
+                        </h1>
                     </div>
-                    <div class="stat-item">
-                        <span class="stat-number">{{ file_size }}</span>
-                        <span class="stat-label">{{ $t('download.stats.sizeLabel') }}</span>
+                </div>
+                
+                <!-- 副标题 -->
+                <div class="subtitle-container">
+                    <p class="hero-subtitle">{{ $t('download.hero.subtitle') }}</p>
+                    <div class="subtitle-accent"></div>
+                </div>
+                
+                <!-- 行动号召 -->
+                <div class="cta-section">
+                    <div class="cta-arrow">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="7,13 12,18 17,13"></polyline>
+                            <polyline points="7,6 12,11 17,6"></polyline>
+                        </svg>
                     </div>
-                    <div class="stat-item">
-                        <span class="stat-number">{{ download_cout }}</span>
-                        <span class="stat-label">{{ $t('download.stats.downloadsLabel') }}</span>
-                    </div>
-                </div> -->
+                    <span class="cta-text">{{ $t('download.hero.cta') || '立即下载' }}</span>
+                </div>
             </div>
+        </div>
+        
+        <!-- 光效叠加 -->
+        <div class="light-overlay">
+            <div class="light-beam light-beam-1"></div>
+            <div class="light-beam light-beam-2"></div>
         </div>
     </section>
 </template>
 
 <script setup lang="ts">
-import type { GithubRelease } from '@/types'
-import { renderSize } from '@/utils/helpers'
-import { callApi } from '@zayne-labs/callapi'
-import { onMounted, ref } from 'vue'
-
-const latest_version = ref<string | undefined>()
-const file_size = ref<string | undefined>()
-const download_cout = ref(0)
-const download_cout_buffer = ref(0)
-
-onMounted(async () => {
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 5000)
-
-    // // Release
-    // const totalReleases = '/api/repos/MenthaMC/Mint/releases'
-    // const totalReleases_call = await callApi<GithubReleases>(totalReleases, {
-    //     signal: controller.signal
-    // })
-
-    // clearTimeout(timeoutId)
-
-    // totalReleases_call.data?.forEach((v) => {
-    //     v.assets.forEach((assets) => {
-    //         download_cout_buffer.value = download_cout.value + assets.download_count
-    //     })
-
-    //     download_cout.value = download_cout_buffer.value
-    // })
-
-    const release = '/api/repos/MenthaMC/Mint/releases/latest'
-    const release_call = await callApi<GithubRelease>(release, { signal: controller.signal })
-
-    clearTimeout(timeoutId)
-    latest_version.value = release_call.data?.tag_name.split('-')[0]
-    file_size.value = renderSize(release_call.data?.assets[0].size as string)
-})
+// 现代化的Hero组件，专注于视觉效果
 </script>
 
 <style scoped>
 .hero-section {
-    padding: 180px 0 80px;
-    background:
-        radial-gradient(circle at 30% 20%, rgba(16, 185, 129, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 70% 80%, rgba(59, 130, 246, 0.15) 0%, transparent 50%);
-}
-
-.hero-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 24px;
-    text-align: center;
-}
-
-.status-badge {
-    display: inline-flex;
+    position: relative;
+    min-height: 80vh;
+    display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    background: rgba(16, 185, 129, 0.1);
-    border: 1px solid rgba(16, 185, 129, 0.3);
-    border-radius: 24px;
-    color: #10b981;
-    font-size: 14px;
-    font-weight: 500;
-    margin-bottom: 32px;
+    justify-content: center;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+    overflow: hidden;
+    padding: 60px 0;
+}
+
+/* 动态网格背景 */
+.grid-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.08;
+}
+
+.grid-line {
+    position: absolute;
+    background: linear-gradient(90deg, transparent, #10b981, transparent);
+    animation: gridPulse 4s ease-in-out infinite;
+}
+
+.grid-line[data-direction="horizontal"] {
+    width: 100%;
+    height: 1px;
+    animation-delay: calc(var(--i, 0) * 0.1s);
+}
+
+.grid-line[data-direction="vertical"] {
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(0deg, transparent, #10b981, transparent);
+    animation-delay: calc(var(--i, 0) * 0.1s + 2s);
+}
+
+@keyframes gridPulse {
+    0%, 100% { opacity: 0.1; }
+    50% { opacity: 0.25; }
+}
+
+/* 浮动几何图形 */
+.floating-shapes {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.shape {
+    position: absolute;
+    border-radius: 50%;
+    background: linear-gradient(45deg, rgba(16, 185, 129, 0.08), rgba(59, 130, 246, 0.08));
+    animation: float 6s ease-in-out infinite;
+}
+
+.shape-1 {
+    width: 80px;
+    height: 80px;
+    top: 20%;
+    left: 10%;
+    animation-delay: 0s;
+}
+
+.shape-2 {
+    width: 60px;
+    height: 60px;
+    top: 60%;
+    right: 15%;
+    animation-delay: 1.5s;
+    border-radius: 20%;
+}
+
+.shape-3 {
+    width: 40px;
+    height: 40px;
+    top: 30%;
+    right: 30%;
+    animation-delay: 3s;
+    transform: rotate(45deg);
+}
+
+.shape-4 {
+    width: 70px;
+    height: 70px;
+    bottom: 20%;
+    left: 20%;
+    animation-delay: 4.5s;
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px) rotate(0deg);
+    }
+    33% {
+        transform: translateY(-15px) rotate(120deg);
+    }
+    66% {
+        transform: translateY(8px) rotate(240deg);
+    }
+}
+
+/* 主容器 */
+.hero-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 20px;
+    text-align: center;
+    position: relative;
+    z-index: 2;
+}
+
+.hero-content {
+    animation: contentReveal 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    opacity: 0;
+    transform: translateY(30px);
+}
+
+@keyframes contentReveal {
+    0% {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes statusGlow {
+    0% {
+        box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+        border-color: rgba(16, 185, 129, 0.3);
+    }
+    100% {
+        box-shadow: 0 0 25px rgba(16, 185, 129, 0.4);
+        border-color: rgba(16, 185, 129, 0.5);
+    }
 }
 
 @keyframes pulse {
-    0%,
-    100% {
+    0%, 100% {
+        transform: scale(1);
         opacity: 1;
     }
-
     50% {
-        opacity: 0.5;
+        transform: scale(1.2);
+        opacity: 0.8;
     }
+}
+
+/* 标题区域 */
+.title-section {
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.title-backdrop {
+    position: relative;
+    display: inline-block;
+}
+
+.title-backdrop::before {
+    content: '';
+    position: absolute;
+    top: -15px;
+    left: -30px;
+    right: -30px;
+    bottom: -15px;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.04), rgba(59, 130, 246, 0.04));
+    border-radius: 15px;
+    filter: blur(15px);
+    z-index: -1;
 }
 
 .hero-title {
-    font-size: 4.5rem;
+    font-size: clamp(2rem, 6vw, 4rem);
     font-weight: 900;
     line-height: 1.1;
-    margin-bottom: 24px;
-    letter-spacing: -0.02em;
-    color: #ffffff;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
-.brand-name {
+.title-line {
+    color: #ffffff;
+    animation: titleSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation-delay: 0.1s;
+    opacity: 0;
+    transform: translateX(-40px);
+}
+
+@keyframes titleSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateX(-40px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.brand-highlight {
+    position: relative;
+    display: inline-block;
+    animation: brandReveal 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation-delay: 0.3s;
+    opacity: 0;
+    transform: scale(0.8);
+}
+
+@keyframes brandReveal {
+    0% {
+        opacity: 0;
+        transform: scale(0.8) rotateY(-15deg);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) rotateY(0deg);
+    }
+}
+
+.brand-text {
     background: linear-gradient(135deg, #10b981 0%, #3b82f6 50%, #8b5cf6 100%);
+    background-size: 200% 200%;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    animation: gradientShift 3s ease-in-out infinite;
+    position: relative;
+    z-index: 1;
+}
+
+@keyframes gradientShift {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+.brand-underline {
+    position: absolute;
+    bottom: -6px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, #10b981, #3b82f6, #8b5cf6);
+    border-radius: 2px;
+    animation: underlineExpand 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation-delay: 0.5s;
+    transform: scaleX(0);
+    transform-origin: left;
+}
+
+@keyframes underlineExpand {
+    0% {
+        transform: scaleX(0);
+    }
+    100% {
+        transform: scaleX(1);
+    }
+}
+
+/* 副标题 */
+.subtitle-container {
+    position: relative;
+    margin-bottom: 32px;
 }
 
 .hero-subtitle {
-    font-size: 1.5rem;
+    font-size: clamp(0.9rem, 2.5vw, 1.3rem);
     color: #94a3b8;
-    margin-bottom: 48px;
     font-weight: 300;
+    line-height: 1.6;
+    margin: 0 0 10px 0;
+    max-width: 450px;
+    margin-left: auto;
+    margin-right: auto;
+    animation: subtitleFadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation-delay: 0.6s;
+    opacity: 0;
+    transform: translateY(15px);
 }
 
-.quick-stats {
-    display: flex;
-    justify-content: center;
-    gap: 48px;
-    margin-top: 48px;
+@keyframes subtitleFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-.stat-item {
+.subtitle-accent {
+    width: 50px;
+    height: 2px;
+    background: linear-gradient(90deg, #10b981, #3b82f6);
+    margin: 0 auto;
+    border-radius: 1px;
+    animation: accentExpand 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation-delay: 0.8s;
+    transform: scaleX(0);
+}
+
+@keyframes accentExpand {
+    0% {
+        transform: scaleX(0);
+    }
+    100% {
+        transform: scaleX(1);
+    }
+}
+
+/* 行动号召 */
+.cta-section {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
+    animation: ctaFadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation-delay: 1s;
+    opacity: 0;
+    transform: translateY(15px);
 }
 
-.stat-number {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #10b981;
-}
-
-.stat-label {
-    font-size: 14px;
-    color: #64748b;
-    font-weight: 500;
-}
-
-@media (max-width: 768px) {
-    .hero-title {
-        font-size: 3rem;
+@keyframes ctaFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(15px);
     }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 
-    .quick-stats {
-        gap: 32px;
+.cta-arrow {
+    width: 36px;
+    height: 36px;
+    color: #10b981;
+    animation: bounce 2s infinite;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cta-arrow:hover {
+    color: #059669;
+    transform: scale(1.1);
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-8px);
+    }
+    60% {
+        transform: translateY(-4px);
+    }
+}
+
+.cta-text {
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+}
+
+/* 光效叠加 */
+.light-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.light-beam {
+    position: absolute;
+    background: linear-gradient(45deg, transparent, rgba(16, 185, 129, 0.08), transparent);
+    animation: lightSweep 8s linear infinite;
+}
+
+.light-beam-1 {
+    width: 2px;
+    height: 100%;
+    left: -2px;
+    animation-delay: 0s;
+}
+
+.light-beam-2 {
+    width: 100%;
+    height: 2px;
+    top: -2px;
+    background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.08), transparent);
+    animation-delay: 4s;
+}
+
+@keyframes lightSweep {
+    0% {
+        transform: translateX(-100vw) translateY(-100vh);
+    }
+    100% {
+        transform: translateX(100vw) translateY(100vh);
+    }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .hero-section {
+        min-height: 70vh;
+        padding: 40px 0;
+    }
+    
+    .hero-container {
+        padding: 0 16px;
+    }
+    
+    .status-indicator {
+        padding: 6px 12px;
+        font-size: 10px;
+    }
+    
+    .hero-title {
+        gap: 8px;
+    }
+    
+    .floating-shapes .shape {
+        opacity: 0.4;
+    }
+    
+    .title-backdrop::before {
+        left: -20px;
+        right: -20px;
+        top: -10px;
+        bottom: -10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-section {
+        padding: 30px 0;
+    }
+    
+    .brand-underline {
+        bottom: -4px;
+        height: 2px;
+    }
+    
+    .subtitle-accent {
+        width: 35px;
+    }
+    
+    .cta-arrow {
+        width: 30px;
+        height: 30px;
+    }
+    
+    .cta-text {
+        font-size: 11px;
     }
 }
 </style>
