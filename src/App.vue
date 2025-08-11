@@ -12,7 +12,6 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
 import Footer from './components/Footer.vue'
 import Navbar from './components/Navbar.vue'
 </script>

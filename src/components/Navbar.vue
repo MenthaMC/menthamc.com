@@ -169,7 +169,6 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getCurrentLanguage, switchLanguage } from '../locales'
-import { LANGUAGE_CONFIG, NAVIGATION_LINKS } from '../utils/constants'
 
 const { t } = useI18n()
 
@@ -184,22 +183,17 @@ const emit = defineEmits<{
     mobileMenuToggle: [isOpen: boolean]
 }>()
 
-// 导航链接
-const navigationLinks = computed(() =>
-    NAVIGATION_LINKS.map((link) => ({
-        ...link,
-        label: t(`nav.${link.key}`),
-    })),
-)
-
-// 可用语言
-const availableLanguages = computed(() =>
-    Object.entries(LANGUAGE_CONFIG).map(([code, config]) => ({
-        code,
-        name: config.name,
-        flag: config.flag,
-    })),
-)
+// 语言配置
+const LANGUAGE_CONFIG = {
+    'zh-CN': {
+        name: '简体中文',
+        flag: '🇨🇳',
+    },
+    'en-US': {
+        name: 'English',
+        flag: '🇺🇸',
+    },
+} as const
 
 // 当前语言显示文本
 const currentLanguageText = computed(() => {
@@ -253,6 +247,12 @@ onMounted(() => {
 onUnmounted(() => {
     document.removeEventListener('click', handleClickOutside)
 })
+</script>
+
+<script lang="ts">
+export default {
+    name: 'AppNavbar'
+}
 </script>
 
 <style scoped>

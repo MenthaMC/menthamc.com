@@ -68,6 +68,12 @@
 // 无需额外逻辑
 </script>
 
+<script lang="ts">
+export default {
+    name: 'AppFooter'
+}
+</script>
+
 <style scoped>
 .footer {
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);

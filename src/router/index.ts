@@ -1,5 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import type { RouteConfig } from '../types'
+import type { RouteRecordRaw } from 'vue-router'
+
+interface RouteConfig extends RouteRecordRaw {
+  meta?: {
+    title?: string;
+    requiresAuth?: boolean;
+  };
+}
 
 // 路由配置
 const routes: RouteConfig[] = [

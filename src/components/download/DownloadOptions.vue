@@ -7,46 +7,96 @@
                 <p class="section-subtitle">{{ $t('download.options.description') }}</p>
             </div>
 
-            <!-- 主要下载卡片 -->
-            <div class="download-card">
-                <!-- 版本信息 -->
-                <div class="version-info">
-                    <div class="version-badge">
-                        <span class="badge-text">{{ $t('download.options.badges.latest') }}</span>
-                        <div class="badge-dot"></div>
+            <!-- 版本选择下拉框 -->
+            <div class="version-selector">
+                <div class="selector-wrapper">
+                    <label class="selector-label">选择版本</label>
+                    <div class="dropdown-container">
+                        <button 
+                            class="dropdown-trigger" 
+                            @click="toggleDropdown"
+                            :class="{ active: isDropdownOpen }"
+                        >
+                            <div class="selected-version">
+                                <div class="version-info">
+                                    <span class="version-name">{{ selectedVersion.name }}</span>
+                                    <span class="version-status" :class="selectedVersion.status">
+                                        {{ getStatusText(selectedVersion.status) }}
+                                    </span>
+                                </div>
+                                <div class="version-meta">
+                                    <span class="version-size">{{ selectedVersion.size }}</span>
+                                    <span class="version-date">{{ selectedVersion.date }}</span>
+                                </div>
+                            </div>
+                            <div class="dropdown-icon" :class="{ rotated: isDropdownOpen }">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="6,9 12,15 18,9"></polyline>
+                                </svg>
+                            </div>
+                        </button>
+                        
+                        <div class="dropdown-menu" :class="{ open: isDropdownOpen }">
+                            <div 
+                                v-for="version in allVersions" 
+                                :key="version.id"
+                                class="dropdown-item"
+                                :class="{ 
+                                    selected: selectedVersion.id === version.id,
+                                    deprecated: version.status === 'deprecated'
+                                }"
+                                @click="selectVersion(version)"
+                            >
+                                <div class="item-content">
+                                    <div class="item-header">
+                                        <span class="item-name">{{ version.name }}</span>
+                                        <span class="item-status" :class="version.status">
+                                            {{ getStatusText(version.status) }}
+                                        </span>
+                                    </div>
+                                    <div class="item-meta">
+                                        <span class="item-size">{{ version.size }}</span>
+                                        <span class="item-date">{{ version.date }}</span>
+                                    </div>
+                                </div>
+                                <div class="item-check" v-if="selectedVersion.id === version.id">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="20,6 9,17 4,12"></polyline>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <h3 class="version-title">Mint {{ currentVersion }}</h3>
-                    <p class="version-description">{{ $t('download.options.stableDescription') }}</p>
                 </div>
-
-                <!-- 文件详情 -->
-                <div class="file-details">
+                
+                <!-- 选中版本的详细信息 -->
+                <div class="selected-details">
                     <div class="detail-item">
                         <div class="detail-icon">📦</div>
                         <div class="detail-content">
                             <span class="detail-label">{{ $t('download.options.fileSpecs.fileSize') }}</span>
-                            <span class="detail-value">{{ fileSize }}</span>
+                            <span class="detail-value">{{ selectedVersion.size }}</span>
                         </div>
                     </div>
                     <div class="detail-item">
                         <div class="detail-icon">🔧</div>
                         <div class="detail-content">
                             <span class="detail-label">{{ $t('download.options.fileSpecs.buildNumber') }}</span>
-                            <span class="detail-value">#{{ buildNumber }}</span>
+                            <span class="detail-value">#{{ selectedVersion.buildNumber || buildNumber }}</span>
                         </div>
                     </div>
                     <div class="detail-item">
                         <div class="detail-icon">📅</div>
                         <div class="detail-content">
                             <span class="detail-label">{{ $t('download.options.fileSpecs.releaseDate') }}</span>
-                            <span class="detail-value">{{ releaseDate }}</span>
+                            <span class="detail-value">{{ selectedVersion.date }}</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- 下载按钮 -->
                 <div class="download-actions">
-                    <button class="download-btn primary" @click="downloadLatest">
+                    <button class="download-btn primary" @click="downloadSelected">
                         <div class="btn-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -56,7 +106,7 @@
                         </div>
                         <div class="btn-content">
                             <span class="btn-text">{{ $t('download.options.actions.download') }}</span>
-                            <span class="btn-subtext">Mint {{ currentVersion }}</span>
+                            <span class="btn-subtext">{{ selectedVersion.name }}</span>
                         </div>
                     </button>
 
@@ -85,33 +135,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- 其他版本 -->
-            <div class="other-versions">
-                <h4 class="versions-title">{{ $t('download.options.otherVersions') }}</h4>
-                <div class="versions-grid">
-                    <div 
-                        v-for="version in otherVersions" 
-                        :key="version.id"
-                        class="version-card"
-                        :class="{ deprecated: version.status === 'deprecated' }"
-                    >
-                        <div class="version-header">
-                            <span class="version-name">{{ version.name }}</span>
-                            <span class="version-status" :class="version.status">
-                                {{ getStatusText(version.status) }}
-                            </span>
-                        </div>
-                        <div class="version-meta">
-                            <span class="version-size">{{ version.size }}</span>
-                            <span class="version-date">{{ version.date }}</span>
-                        </div>
-                        <button class="version-download-btn" @click="downloadVersion(version)">
-                            {{ $t('download.options.actions.download') }}
-                        </button>
-                    </div>
-                </div>
-            </div>
         </div>
     </section>
 </template>
@@ -119,9 +142,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { GithubRelease } from '@/types'
-import { renderSize } from '@/utils/helpers'
-import { callApi } from '@zayne-labs/callapi'
+import { mintProjectService } from '@/services/mint-project.service'
 
 const { t } = useI18n()
 
@@ -130,113 +151,133 @@ const currentVersion = ref('1.21.8')
 const fileSize = ref('45.2MB')
 const buildNumber = ref('95')
 const releaseDate = ref('2024-01-15')
+const downloadUrl = ref('')
+const isLoading = ref(false)
+const isDropdownOpen = ref(false)
 
-const otherVersions = ref([
+const allVersions = ref([
     {
         id: 1,
-        name: 'Mint 1.21.4',
-        status: 'stable',
-        size: '44.8MB',
-        date: '2024-01-10'
+        name: 'Mint 1.21.8',
+        status: 'latest',
+        size: '45.2MB',
+        date: '2024-01-15',
+        downloadUrl: '',
+        buildNumber: '95'
     },
     {
         id: 2,
-        name: 'Mint 1.21.3',
-        status: 'legacy',
-        size: '44.5MB',
-        date: '2024-01-05'
+        name: 'Mint 1.21.4',
+        status: 'stable',
+        size: '44.8MB',
+        date: '2024-01-10',
+        downloadUrl: '',
+        buildNumber: '92'
     },
     {
         id: 3,
+        name: 'Mint 1.21.3',
+        status: 'legacy',
+        size: '44.5MB',
+        date: '2024-01-05',
+        downloadUrl: '',
+        buildNumber: '89'
+    },
+    {
+        id: 4,
         name: 'Mint 1.21.2',
         status: 'deprecated',
         size: '44.2MB',
-        date: '2023-12-28'
+        date: '2023-12-28',
+        downloadUrl: '',
+        buildNumber: '86'
     }
 ])
 
-// 防止重复请求的标志
-let isLoading = false
-let abortController: AbortController | null = null
+const selectedVersion = ref(allVersions.value[0])
 
 // 获取最新版本信息
 const fetchReleaseInfo = async () => {
-    if (isLoading) {
-        console.log('Request already in progress, skipping...')
+    if (isLoading.value) {
         return
     }
 
     try {
-        isLoading = true
+        isLoading.value = true
         
-        // 取消之前的请求
-        if (abortController) {
-            abortController.abort()
+        const latestRelease = await mintProjectService.getLatestRelease()
+        
+        if (latestRelease) {
+            currentVersion.value = latestRelease.version
+            buildNumber.value = latestRelease.buildNumber
+            fileSize.value = latestRelease.fileSize
+            releaseDate.value = latestRelease.releaseDate
+            downloadUrl.value = latestRelease.downloadUrl
+        }
+
+        // 获取所有版本
+        const allReleases = await mintProjectService.getAllReleases(10)
+        if (allReleases.length > 0) {
+            const versions = allReleases.map((release, index) => ({
+                id: index + 1,
+                name: `Mint ${release.version}`,
+                status: index === 0 ? 'latest' : index === 1 ? 'stable' : index === 2 ? 'legacy' : 'deprecated',
+                size: release.fileSize,
+                date: release.releaseDate,
+                downloadUrl: release.downloadUrl,
+                version: release.version,
+                buildNumber: release.buildNumber
+            }))
+            
+            allVersions.value = versions
+            selectedVersion.value = versions[0]
         }
         
-        abortController = new AbortController()
-        const timeoutId = setTimeout(() => {
-            if (abortController) {
-                abortController.abort()
-            }
-        }, 5000)
-
-        const release = '/api/repos/MenthaMC/Mint/releases/latest'
-        const response = await callApi<GithubRelease>(release, { 
-            signal: abortController.signal 
-        })
-
-        clearTimeout(timeoutId)
-
-        if (response.data) {
-            currentVersion.value = response.data.tag_name.split('-')[0]
-            buildNumber.value = response.data.tag_name.split('-')[1]
-            fileSize.value = renderSize(response.data.assets[0]?.size as string)
-            releaseDate.value = new Date(response.data.published_at).toLocaleDateString('zh-CN')
-        }
     } catch (error) {
-        if (error instanceof Error && error.name !== 'AbortError') {
-            console.warn('Failed to fetch release info:', error)
-        }
+        console.error('获取版本信息失败:', error)
     } finally {
-        isLoading = false
-        abortController = null
+        isLoading.value = false
     }
 }
-
-onMounted(() => {
-    fetchReleaseInfo()
-})
-
-// 组件卸载时取消请求
-onUnmounted(() => {
-    if (abortController) {
-        abortController.abort()
-        abortController = null
-    }
-    isLoading = false
-})
 
 // 方法
-const downloadLatest = () => {
-    const filename = `mint-${currentVersion.value}-${buildNumber.value}.jar`
-    const downloadUrl = `https://github.com/MenthaMC/Mint/releases/download/v${currentVersion.value}/${filename}`
-    
-    const link = document.createElement('a')
-    link.href = downloadUrl
-    link.download = filename
-    link.style.display = 'none'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+const toggleDropdown = () => {
+    isDropdownOpen.value = !isDropdownOpen.value
 }
 
-const downloadVersion = (version: any) => {
-    console.log(t('download.options.downloadingVersion'), version.name)
+const selectVersion = (version: any) => {
+    selectedVersion.value = version
+    isDropdownOpen.value = false
+}
+
+const downloadSelected = () => {
+    if (selectedVersion.value.downloadUrl) {
+        const link = document.createElement('a')
+        link.href = selectedVersion.value.downloadUrl
+        link.download = `mint-${selectedVersion.value.version || selectedVersion.value.name.split(' ')[1]}.jar`
+        link.style.display = 'none'
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+    } else {
+        // 备用下载方式
+        const version = selectedVersion.value.version || selectedVersion.value.name.split(' ')[1]
+        const filename = `mint-${version}.jar`
+        const fallbackUrl = `https://github.com/MenthaMC/Mint/releases/download/v${version}/${filename}`
+        
+        const link = document.createElement('a')
+        link.href = fallbackUrl
+        link.download = filename
+        link.style.display = 'none'
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+    }
 }
 
 const viewChangelog = () => {
-    window.open(`https://github.com/MenthaMC/Mint/releases/tag/v${currentVersion.value}`, '_blank')
+    const version = selectedVersion.value.version || selectedVersion.value.name.split(' ')[1]
+    window.open(`https://github.com/MenthaMC/Mint/releases/tag/v${version}`, '_blank')
 }
 
 const viewDocs = () => {
@@ -249,12 +290,30 @@ const verifyFile = () => {
 
 const getStatusText = (status: string) => {
     const statusMap: Record<string, string> = {
+        latest: t('download.options.badges.latest'),
         stable: t('download.options.badges.stable'),
         legacy: t('download.options.badges.legacy'),
         deprecated: t('download.options.badges.deprecated')
     }
     return statusMap[status] || status
 }
+
+// 点击外部关闭下拉菜单
+const handleClickOutside = (event: MouseEvent) => {
+    const target = event.target as HTMLElement
+    if (!target.closest('.dropdown-container')) {
+        isDropdownOpen.value = false
+    }
+}
+
+onMounted(() => {
+    fetchReleaseInfo()
+    document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+    document.removeEventListener('click', handleClickOutside)
+})
 </script>
 
 <style scoped>
@@ -307,8 +366,8 @@ const getStatusText = (status: string) => {
     margin: 0;
 }
 
-/* 主下载卡片 */
-.download-card {
+/* 版本选择器 */
+.version-selector {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 20px;
@@ -333,65 +392,237 @@ const getStatusText = (status: string) => {
     }
 }
 
-.download-card:hover {
+.version-selector:hover {
     border-color: rgba(16, 185, 129, 0.3);
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
     transform: translateY(-2px);
 }
 
-/* 版本信息 */
-.version-info {
+/* 选择器标签 */
+.selector-label {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 16px;
     text-align: center;
+}
+
+/* 下拉容器 */
+.dropdown-container {
+    position: relative;
     margin-bottom: 32px;
 }
 
-.version-badge {
-    display: inline-flex;
+.dropdown-trigger {
+    width: 100%;
+    display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 6px 16px;
-    background: rgba(16, 185, 129, 0.1);
-    border: 1px solid rgba(16, 185, 129, 0.3);
-    border-radius: 20px;
-    color: #10b981;
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 16px;
-}
-
-.badge-dot {
-    width: 6px;
-    height: 6px;
-    background: #10b981;
-    border-radius: 50%;
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0%, 100% {
-        opacity: 1;
-        transform: scale(1);
-    }
-    50% {
-        opacity: 0.7;
-        transform: scale(1.2);
-    }
-}
-
-.version-title {
-    font-size: 2rem;
-    font-weight: 700;
+    justify-content: space-between;
+    padding: 20px 24px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
     color: #ffffff;
-    margin: 0 0 8px 0;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.version-description {
+.dropdown-trigger:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+.dropdown-trigger.active {
+    border-color: rgba(16, 185, 129, 0.5);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.selected-version {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: left;
+}
+
+.version-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.version-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.version-status {
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.version-status.latest {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+}
+
+.version-status.stable {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+}
+
+.version-status.legacy {
+    background: rgba(107, 114, 128, 0.2);
+    color: #9ca3af;
+}
+
+.version-status.deprecated {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+}
+
+.version-meta {
+    display: flex;
+    gap: 16px;
+    font-size: 14px;
     color: #94a3b8;
-    margin: 0;
 }
 
-/* 文件详情 */
-.file-details {
+.dropdown-icon {
+    width: 24px;
+    height: 24px;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dropdown-icon.rotated {
+    transform: rotate(180deg);
+}
+
+.dropdown-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+/* 下拉菜单 */
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: rgba(30, 41, 59, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    backdrop-filter: blur(20px);
+    z-index: 1000;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-top: 8px;
+}
+
+.dropdown-menu.open {
+    max-height: 400px;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.dropdown-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.dropdown-item.selected {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.2);
+}
+
+.dropdown-item.deprecated {
+    opacity: 0.6;
+}
+
+.item-content {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.item-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.item-name {
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.item-status {
+    padding: 3px 6px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.item-status.latest {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+}
+
+.item-status.stable {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+}
+
+.item-status.legacy {
+    background: rgba(107, 114, 128, 0.2);
+    color: #9ca3af;
+}
+
+.item-status.deprecated {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+}
+
+.item-meta {
+    display: flex;
+    gap: 16px;
+    font-size: 13px;
+    color: #94a3b8;
+}
+
+.item-check {
+    width: 20px;
+    height: 20px;
+    color: #10b981;
+}
+
+.item-check svg {
+    width: 100%;
+    height: 100%;
+}
+
+/* 选中版本详情 */
+.selected-details {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 16px;
@@ -545,129 +776,17 @@ const getStatusText = (status: string) => {
     height: 16px;
 }
 
-/* 其他版本 */
-.other-versions {
-    animation: versionsSlideIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-    animation-delay: 0.4s;
-    opacity: 0;
-    transform: translateY(30px);
-}
-
-@keyframes versionsSlideIn {
-    0% {
-        opacity: 0;
-        transform: translateY(40px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.versions-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #ffffff;
-    margin-bottom: 24px;
-    text-align: center;
-}
-
-.versions-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 16px;
-}
-
-.version-card {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    padding: 20px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.version-card:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.15);
-    transform: translateY(-2px);
-}
-
-.version-card.deprecated {
-    opacity: 0.6;
-}
-
-.version-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-}
-
-.version-name {
-    font-weight: 600;
-    color: #ffffff;
-}
-
-.version-status {
-    padding: 4px 8px;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 600;
-}
-
-.version-status.stable {
-    background: rgba(16, 185, 129, 0.2);
-    color: #10b981;
-}
-
-.version-status.legacy {
-    background: rgba(107, 114, 128, 0.2);
-    color: #9ca3af;
-}
-
-.version-status.deprecated {
-    background: rgba(239, 68, 68, 0.2);
-    color: #f87171;
-}
-
-.version-meta {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 16px;
-    font-size: 14px;
-    color: #64748b;
-}
-
-.version-download-btn {
-    width: 100%;
-    padding: 8px 16px;
-    background: rgba(16, 185, 129, 0.1);
-    border: 1px solid rgba(16, 185, 129, 0.3);
-    border-radius: 8px;
-    color: #10b981;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.version-download-btn:hover {
-    background: rgba(16, 185, 129, 0.2);
-    border-color: rgba(16, 185, 129, 0.5);
-    transform: translateY(-1px);
-}
-
 /* 响应式设计 */
 @media (max-width: 768px) {
     .container {
         padding: 0 16px;
     }
     
-    .download-card {
+    .version-selector {
         padding: 24px;
     }
     
-    .file-details {
+    .selected-details {
         grid-template-columns: 1fr;
     }
     
@@ -679,8 +798,23 @@ const getStatusText = (status: string) => {
         justify-content: center;
     }
     
-    .versions-grid {
-        grid-template-columns: 1fr;
+    .dropdown-trigger {
+        padding: 16px 20px;
+    }
+    
+    .version-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .version-meta {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .dropdown-menu {
+        max-height: 300px;
     }
 }
 
@@ -696,6 +830,22 @@ const getStatusText = (status: string) => {
     
     .btn-content {
         align-items: center;
+    }
+    
+    .dropdown-trigger {
+        padding: 14px 16px;
+    }
+    
+    .selected-version {
+        gap: 6px;
+    }
+    
+    .version-name {
+        font-size: 1rem;
+    }
+    
+    .dropdown-item {
+        padding: 12px 16px;
     }
 }
 </style>

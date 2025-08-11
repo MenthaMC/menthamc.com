@@ -143,7 +143,25 @@ const projects = computed(() => [
     },
 ])
 
-const handleDownload = (project: any) => {
+interface Project {
+    title: string
+    description: string
+    icon: string
+    featured: boolean
+    status: {
+        type: string
+        text: string
+    }
+    features: string[]
+    stats: {
+        stars: string
+        forks: string
+        version: string
+    }
+    githubUrl: string
+}
+
+const handleDownload = (project: Project) => {
     console.log(t('home.projects.actions.download') + ':', project.title)
     router.push('/download')
 }

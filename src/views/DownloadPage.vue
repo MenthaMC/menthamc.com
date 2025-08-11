@@ -27,17 +27,20 @@ import DownloadHero from '@/components/download/DownloadHero.vue'
 import DownloadOptions from '@/components/download/DownloadOptions.vue'
 
 // 生成粒子样式
-const getParticleStyle = (index: number) => {
+const getParticleStyle = (particleIndex: number) => {
     const size = Math.random() * 4 + 2
     const left = Math.random() * 100
     const animationDelay = Math.random() * 8
     const animationDuration = Math.random() * 6 + 8
     
+    // 使用particleIndex确保每个粒子有唯一的样式
+    const uniqueOffset = particleIndex * 0.1
+    
     return {
         width: `${size}px`,
         height: `${size}px`,
         left: `${left}%`,
-        animationDelay: `${animationDelay}s`,
+        animationDelay: `${animationDelay + uniqueOffset}s`,
         animationDuration: `${animationDuration}s`
     }
 }

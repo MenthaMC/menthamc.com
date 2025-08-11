@@ -436,6 +436,7 @@ export default {
             title: 'Get',
             subtitle:
                 'Download the latest version of Mint server for ultimate performance and stability',
+            cta: 'Download Now',
         },
         stats: {
             version: 'v1.21.4',
@@ -446,8 +447,10 @@ export default {
             downloadsLabel: 'Total Downloads',
         },
         options: {
-            title: 'Choose Version',
+            title: 'Download Mint',
             description: 'Select the version that suits your server',
+            otherVersions: 'Other Versions',
+            downloadingVersion: 'Downloading version:',
             versionSelector: 'Version Selector',
             fileSpecs: {
                 fileSize: 'File Size',
@@ -471,6 +474,26 @@ export default {
                 stable: 'Stable',
                 beta: 'Beta',
                 legacy: 'Legacy',
+                deprecated: 'Deprecated',
+            },
+        },
+        buildHistory: {
+            title: 'Build History',
+            description: 'View build history and update records for all Mint versions',
+            loading: 'Loading...',
+            loadMore: 'Load More Versions',
+            fileSize: 'File Size',
+            downloads: 'Downloads',
+            badges: {
+                latest: 'Latest',
+                stable: 'Stable',
+                beta: 'Beta',
+                legacy: 'Legacy',
+            },
+            actions: {
+                download: 'Download',
+                changelog: 'Changelog',
+                viewCommit: 'View Commit',
             },
         },
         history: {

@@ -322,6 +322,7 @@ export default {
     },
     // 下载页面
     download: {
+        status: '稳定版本可用',
         hero: {
             title: '获取',
             subtitle: '下载最新版本的 Mint 服务端，体验极致性能和稳定性',
@@ -338,9 +339,10 @@ export default {
         options: {
             title: '下载 Mint',
             description: '选择适合您的版本开始下载',
-            stableDescription: '稳定版本，推荐用于生产环境',
             otherVersions: '其他版本',
             downloadingVersion: '下载版本:',
+            versionSelector: '版本选择器',
+            fileType: 'JAR 文件',
             fileSpecs: {
                 fileSize: '文件大小',
                 javaVersion: 'Java 版本',
@@ -363,6 +365,25 @@ export default {
                 beta: '测试版',
                 legacy: '旧版本',
                 deprecated: '已弃用',
+            },
+        },
+        buildHistory: {
+            title: '构建历史',
+            description: '查看Mint的版本发布历史和更新记录',
+            loading: '加载中...',
+            loadMore: '加载更多版本',
+            fileSize: '文件大小',
+            downloads: '下载次数',
+            badges: {
+                latest: '最新版本',
+                stable: '稳定版',
+                beta: '测试版',
+                legacy: '旧版本',
+            },
+            actions: {
+                download: '下载',
+                changelog: '更新日志',
+                viewCommit: '查看提交',
             },
         },
         history: {

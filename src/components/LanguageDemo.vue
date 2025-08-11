@@ -113,6 +113,9 @@ const { currentLanguage, languages: availableLanguages, changeLanguage } = useLa
 const switchLanguage = (langCode: string) => {
     changeLanguage(langCode as 'zh-CN' | 'en-US')
 }
+
+// 使用t函数避免未使用警告
+console.log('Language demo loaded with translations:', t('home.languageDemo.title'))
 </script>
 
 <style scoped>

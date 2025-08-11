@@ -27,16 +27,6 @@
                         <p class="card-description">
                             {{ $t('home.community.github.description') }}
                         </p>
-                        <div class="card-stats">
-                            <div class="stat">
-                                <span class="stat-number">35+</span>
-                                <span class="stat-label">Stars</span>
-                            </div>
-                            <div class="stat">
-                                <span class="stat-number">5+</span>
-                                <span class="stat-label">Contributors</span>
-                            </div>
-                        </div>
                     </div>
                     <div class="card-right">
                         <button class="card-action" @click="openGitHub">
@@ -348,26 +338,6 @@ const openContributing = () => {
     margin-bottom: 16px;
 }
 
-.card-stats {
-    display: flex;
-    gap: 24px;
-}
-
-.stat {
-    text-align: center;
-}
-
-.stat-number {
-    display: block;
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #10b981;
-}
-
-.stat-label {
-    font-size: 0.75rem;
-    color: #9ca3af;
-}
 
 .card-right {
     display: flex;
@@ -630,8 +600,5 @@ const openContributing = () => {
         font-size: 1.5rem;
     }
 
-    .card-stats {
-        justify-content: center;
-    }
 }
 </style>

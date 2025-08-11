@@ -31,23 +31,6 @@
                     <span>{{ $t('home.welcome.actions.viewDocs') }}</span>
                 </button>
             </div>
-
-            <div class="welcome-stats">
-                <div class="stat-item">
-                    <div class="stat-number">{{ stargazers }}+</div>
-                    <div class="stat-label">{{ $t('home.welcome.stats.stars') }}</div>
-                </div>
-                <div class="stat-divider"></div>
-                <div class="stat-item">
-                    <div class="stat-number">{{ players }}+</div>
-                    <div class="stat-label">{{ $t('home.welcome.stats.users') }}</div>
-                </div>
-                <div class="stat-divider"></div>
-                <div class="stat-item">
-                    <div class="stat-number">100%</div>
-                    <div class="stat-label">{{ $t('home.welcome.stats.opensource') }}</div>
-                </div>
-            </div>
         </div>
     </section>
 </template>
@@ -288,34 +271,6 @@ onMounted(async () => {
     transform: translateY(-2px);
 }
 
-.welcome-stats {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 32px;
-    animation: slideInUp 0.8s ease-out 0.8s both;
-}
-
-.stat-item {
-    text-align: center;
-}
-
-.stat-number {
-    font-size: 2rem;
-    font-weight: 800;
-    background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 4px;
-}
-
-.stat-label {
-    font-size: 0.875rem;
-    color: #9ca3af;
-    font-weight: 500;
-}
-
 .stat-divider {
     width: 1px;
     height: 40px;
@@ -369,10 +324,6 @@ onMounted(async () => {
         width: 100%;
         max-width: 280px;
         justify-content: center;
-    }
-
-    .welcome-stats {
-        gap: 20px;
     }
 
     .stat-number {
