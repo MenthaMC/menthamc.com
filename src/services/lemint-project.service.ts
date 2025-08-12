@@ -3,7 +3,7 @@ import { renderSize } from '@/utils/helpers'
 import { GitHubApiService } from './github-api.service'
 import { api } from '@/main'
 
-export interface MintReleaseInfo {
+export interface LemonMIntReleaseInfo {
   version: string
   buildNumber: string
   fileSize: string
@@ -19,7 +19,7 @@ export interface MintReleaseInfo {
   }>
 }
 
-export interface MintBranchInfo {
+export interface LemonMIntBranchInfo {
   name: string
   displayName: string
   sha: string
@@ -32,11 +32,11 @@ export interface MintBranchInfo {
   }
 }
 
-export interface MintProjectInfo {
+export interface LemonMIntProjectInfo {
   repository: GitHubRepository
-  latestRelease: MintReleaseInfo
-  releases: MintReleaseInfo[]
-  branches: MintBranchInfo[]
+  latestRelease: LemonMIntReleaseInfo
+  releases: LemonMIntReleaseInfo[]
+  branches: LemonMIntBranchInfo[]
   stats: {
     stars: number
     forks: number
@@ -56,9 +56,9 @@ interface CacheOptions {
   forceRefresh?: boolean
 }
 
-export class MintProjectService {
+export class LemonMIntProjectService {
   private readonly OWNER = 'MenthaMC'
-  private readonly REPO = 'Mint'
+  private readonly REPO = 'LemonMInt'
   private readonly DEFAULT_CACHE_TTL = 5 * 60 * 1000 // 5分钟缓存
   private readonly LONG_CACHE_TTL = 30 * 60 * 1000 // 30分钟缓存（用于稳定数据）
   private readonly SHORT_CACHE_TTL = 2 * 60 * 1000 // 2分钟缓存（用于频繁变化数据）
@@ -217,36 +217,36 @@ export class MintProjectService {
    * 获取模拟数据作为降级方案
    */
   private getMockData(cacheKey: string): unknown {
-    if (cacheKey === 'mint:latest-release') {
+    if (cacheKey === 'lemint:latest-release') {
       return {
         version: '1.0.0',
         buildNumber: '1',
         fileSize: '未知',
         releaseDate: new Date().toLocaleDateString('zh-CN'),
-        downloadUrl: 'https://github.com/MenthaMC/Mint/releases',
-        changelogUrl: 'https://github.com/MenthaMC/Mint/releases',
+        downloadUrl: 'https://github.com/MenthaMC/LemonMInt/releases',
+        changelogUrl: 'https://github.com/MenthaMC/LemonMInt/releases',
         assets: [{
-          name: 'mint-latest.jar',
+          name: 'lemint-latest.jar',
           size: 0,
           downloadCount: 0,
-          browserDownloadUrl: 'https://github.com/MenthaMC/Mint/releases'
+          browserDownloadUrl: 'https://github.com/MenthaMC/LemonMInt/releases'
         }]
       }
     }
     
-    if (cacheKey.startsWith('mint:all-releases')) {
+    if (cacheKey.startsWith('lemint:all-releases')) {
       return [{
         version: '1.0.0',
         buildNumber: '1',
         fileSize: '未知',
         releaseDate: new Date().toLocaleDateString('zh-CN'),
-        downloadUrl: 'https://github.com/MenthaMC/Mint/releases',
-        changelogUrl: 'https://github.com/MenthaMC/Mint/releases',
+        downloadUrl: 'https://github.com/MenthaMC/LemonMInt/releases',
+        changelogUrl: 'https://github.com/MenthaMC/LemonMInt/releases',
         assets: [{
-          name: 'mint-latest.jar',
+          name: 'lemint-latest.jar',
           size: 0,
           downloadCount: 0,
-          browserDownloadUrl: 'https://github.com/MenthaMC/Mint/releases'
+          browserDownloadUrl: 'https://github.com/MenthaMC/LemonMInt/releases'
         }]
       }]
     }
@@ -257,8 +257,8 @@ export class MintProjectService {
   /**
    * 获取最新版本信息
    */
-  async getLatestRelease(options: CacheOptions = {}): Promise<MintReleaseInfo | null> {
-    const cacheKey = 'mint:latest-release'
+  async getLatestRelease(options: CacheOptions = {}): Promise<LemonMIntReleaseInfo | null> {
+    const cacheKey = 'lemint:latest-release'
     
     return this.getCachedOrFetch(
       cacheKey,
@@ -303,8 +303,8 @@ export class MintProjectService {
   /**
    * 获取所有版本列表
    */
-  async getAllReleases(limit: number = 10, options: CacheOptions = {}): Promise<MintReleaseInfo[]> {
-    const cacheKey = `mint:all-releases:${limit}`
+  async getAllReleases(limit: number = 10, options: CacheOptions = {}): Promise<LemonMIntReleaseInfo[]> {
+    const cacheKey = `lemint:all-releases:${limit}`
     
     const result = await this.getCachedOrFetch(
       cacheKey,
@@ -343,15 +343,15 @@ export class MintProjectService {
   /**
    * 获取分支信息
    */
-  async getBranches(options: CacheOptions = {}): Promise<MintBranchInfo[]> {
-    const cacheKey = 'mint:branches'
+  async getBranches(options: CacheOptions = {}): Promise<LemonMIntBranchInfo[]> {
+    const cacheKey = 'lemint:branches'
     
     const result = await this.getCachedOrFetch(
       cacheKey,
       async () => {
         const branches = await this.githubApi.getBranches(this.OWNER, this.REPO, { per_page: 50 })
         
-        const branchInfos: MintBranchInfo[] = branches.map(branch => ({
+        const branchInfos: LemonMIntBranchInfo[] = branches.map(branch => ({
           name: branch.name,
           displayName: this.getBranchDisplayName(branch.name),
           sha: branch.commit.sha.substring(0, 7),
@@ -410,8 +410,8 @@ export class MintProjectService {
   /**
    * 获取项目完整信息
    */
-  async getProjectInfo(options: CacheOptions = {}): Promise<MintProjectInfo | null> {
-    const cacheKey = 'mint:project-info'
+  async getProjectInfo(options: CacheOptions = {}): Promise<LemonMIntProjectInfo | null> {
+    const cacheKey = 'lemint:project-info'
     
     return this.getCachedOrFetch(
       cacheKey,
@@ -460,7 +460,7 @@ export class MintProjectService {
    * 获取下载统计信息
    */
   async getDownloadStats(options: CacheOptions = {}): Promise<{ totalDownloads: number; releaseDownloads: Record<string, number> }> {
-    const cacheKey = 'mint:download-stats'
+    const cacheKey = 'lemint:download-stats'
     
     const result = await this.getCachedOrFetch(
       cacheKey,
@@ -491,7 +491,7 @@ export class MintProjectService {
    * 获取指定标签的提交信息
    */
   async getCommitInfoByTag(tagName: string, options: CacheOptions = {}): Promise<BuildCommitInfo | null> {
-    const cacheKey = `mint:commit:${tagName}`
+    const cacheKey = `lemint:commit:${tagName}`
     
     return this.getCachedOrFetch(
       cacheKey,
@@ -546,7 +546,7 @@ export class MintProjectService {
   /**
    * 转换GitHub Release数据为内部格式
    */
-  private async transformReleaseData(release: GitHubRelease): Promise<MintReleaseInfo> {
+  private async transformReleaseData(release: GitHubRelease): Promise<LemonMIntReleaseInfo> {
     // 解析版本号和构建号
     const tagParts = release.tag_name.replace(/^v/, '').split('-')
     const version = tagParts[0] || release.tag_name
@@ -619,7 +619,7 @@ export class MintProjectService {
   clearCache(): void {
     this.cache.clear()
     this.pendingRequests.clear()
-    console.log('Mint项目缓存已清除')
+    console.log('LemonMInt项目缓存已清除')
   }
 
   /**
@@ -633,7 +633,7 @@ export class MintProjectService {
     }
     lastUpdate: number | null
   } {
-    const latestRelease = this.getCache<MintReleaseInfo>('mint:latest-release')
+    const latestRelease = this.getCache<LemonMIntReleaseInfo>('lemint:latest-release')
     
     return {
       cacheStats: { 
@@ -667,4 +667,4 @@ export class MintProjectService {
 }
 
 // 导出单例实例
-export const mintProjectService = new MintProjectService()
+export const lemintProjectService = new LemonMIntProjectService()

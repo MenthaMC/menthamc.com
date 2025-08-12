@@ -5,6 +5,8 @@ import router from './router'
 import './styles/components.css'
 import './styles/mobile.css'
 
+export const api = "http://43.163.120.17:32767/v2"
+
 const app = createApp(App)
 app.use(router)
 app.use(i18n)

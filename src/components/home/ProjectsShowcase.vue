@@ -89,12 +89,46 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { mintProjectService } from '@/services/mint-project.service'
+import { lemintProjectService } from '@/services/lemint-project.service'
 
 const router = useRouter()
 const { t } = useI18n()
+
+const mint_star = ref<undefined | number>()
+const mint_fork = ref<undefined | number>()
+const mint_latest_ver = ref<undefined | string>()
+
+const lemint_star = ref<undefined | number>()
+const lemint_fork = ref<undefined | number>()
+const lemint_latest_ver = ref<undefined | string>()
+
+onMounted(async () => {
+    const mint_req = await mintProjectService.getProjectInfo()
+    if (mint_req) {
+        mint_star.value = mint_req.stats.stars
+        mint_fork.value = mint_req.stats.forks
+    }
+
+    const mint_latest_req = await mintProjectService.getLatestRelease()
+    if (mint_latest_req) {
+        mint_latest_ver.value = mint_latest_req.version
+    }
+
+    const lemint_req = await lemintProjectService.getProjectInfo()
+    if (lemint_req) {
+        lemint_star.value = lemint_req.stats.stars
+        lemint_fork.value = lemint_req.stats.forks
+    }
+
+    const lemint_latest_req = await lemintProjectService.getLatestRelease()
+    if (lemint_latest_req) {
+        lemint_latest_ver.value = lemint_latest_req.version
+    }
+})
 
 const projects = computed(() => [
     {
@@ -113,9 +147,9 @@ const projects = computed(() => [
             t('projectsShowcase.projects.mint.features.3'),
         ],
         stats: {
-            stars: '35',
-            forks: '2',
-            version: '1.21.8',
+            stars: mint_star.value,
+            forks: mint_fork.value,
+            version: mint_latest_ver.value,
         },
         githubUrl: 'https://github.com/MenthaMC/Mint',
     },
@@ -135,9 +169,9 @@ const projects = computed(() => [
             t('projectsShowcase.projects.lemonMint.features.3'),
         ],
         stats: {
-            stars: '9',
-            forks: '1',
-            version: '1.21.8',
+            stars: lemint_star.value,
+            forks: lemint_fork.value,
+            version: lemint_latest_ver.value,
         },
         githubUrl: 'https://github.com/MenthaMC/LemonMint',
     },

@@ -12,14 +12,6 @@ export default defineConfig({
         },
     },
     server: {
-        host: '0.0.0.0',
-        proxy: {
-            '^/api': {
-                target: 'http://api.menthamc.com:8080',
-                rewrite:(path) => {                    
-                    return path.replace(/^\/api/,'')          
-                }
-            }
-        }
-    },
+        host: '0.0.0.0'
+    }
 })

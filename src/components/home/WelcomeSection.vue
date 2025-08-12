@@ -36,10 +36,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { callApi } from '@zayne-labs/callapi'
-import type { GithubRepo, TimeSeriesData } from '@/types'
 
 const router = useRouter()
 
@@ -50,49 +47,6 @@ const handleGetStarted = () => {
 const handleViewDocs = () => {
     window.open('https://menthamc.github.io/docs/', '_blank')
 }
-
-const players = ref<undefined | number>()
-const stargazers = ref<undefined | number>()
-
-onMounted(async () => {
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 5000)
-
-    // Bstatus
-    const bstatus = ['https://bstats.org/api/v1/plugins/26215/charts/players/data']
-
-    const bstatus_promises = bstatus.map((url) =>
-        callApi<TimeSeriesData>(url, { signal: controller.signal }).then((response) => {
-            if (response.data === null) {
-                throw new Error(`Unable to retrieve time series for ${url}`)
-            }
-            return response.data[response.data.length - 1][1]
-        }),
-    )
-
-    const bstatus_results = await Promise.all(bstatus_promises)
-    clearTimeout(timeoutId)
-    players.value = bstatus_results.reduce((total, num) => total + num, 0)
-
-    // Stars
-    const repos = [
-        '/api/repos/MenthaMC/Mint',
-        '/api/repos/MenthaMC/LemonMint',
-    ]
-
-    const repos_promises = repos.map((url) =>
-        callApi<GithubRepo>(url, { signal: controller.signal }).then((response) => {
-            if (response.data === null) {
-                throw new Error(`Unable to retrieve time series for ${url}`)
-            }
-            return response.data.stargazers_count
-        }),
-    )
-
-    const repos_results = await Promise.all(repos_promises)
-    clearTimeout(timeoutId)
-    stargazers.value = repos_results.reduce((total, num) => total + num, 0)
-})
 </script>
 
 <style scoped>
