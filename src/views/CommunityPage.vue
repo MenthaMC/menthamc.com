@@ -9,20 +9,6 @@
                 <div class="hero-content">
                     <h1 class="hero-title">{{ t('community.title') }}</h1>
                     <p class="hero-subtitle">{{ t('community.subtitle') }}</p>
-                    <div class="hero-stats">
-                        <div class="stat-item">
-                            <span class="stat-number">25,000+</span>
-                            <span class="stat-label">{{ t('community.stats.members') }}</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-number">3,500+</span>
-                            <span class="stat-label">{{ t('community.stats.projects') }}</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-number">800+</span>
-                            <span class="stat-label">{{ t('community.stats.contributors') }}</span>
-                        </div>
-                    </div>
                 </div>
             </div>
         </section>
@@ -42,9 +28,6 @@
                         </div>
                         <h3>{{ t('community.platforms.discord.title') }}</h3>
                         <p>{{ t('community.platforms.discord.description') }}</p>
-                        <div class="platform-stats">
-                            <span>{{ t('community.platforms.discord.stats') }}</span>
-                        </div>
                         <button class="platform-btn">
                             {{ t('community.platforms.discord.action') }}
                         </button>
@@ -60,29 +43,23 @@
                         </div>
                         <h3>{{ t('community.platforms.github.title') }}</h3>
                         <p>{{ t('community.platforms.github.description') }}</p>
-                        <div class="platform-stats">
-                            <span>2,500+ Stars</span>
-                        </div>
                         <button class="platform-btn">
                             {{ t('community.platforms.github.action') }}
                         </button>
                     </div>
 
-                    <div class="platform-card forum">
+                    <div class="platform-card qq">
                         <div class="platform-icon">
                             <svg viewBox="0 0 24 24" fill="currentColor">
                                 <path
-                                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                                    d="M12.003 2c-2.265 0-6.29 1.364-6.29 7.325v1.195S3.55 14.96 3.55 17.614c0 .805.917 1.33 1.03.115 0 0 .24-1.588 1.365-3.683 0 0 .36 1.995 2.565 3.453 0 0-.34.804-.917 1.33 0 0-.572.52-.572 1.063 0 .805 1.605 1.33 4.983 1.33 3.378 0 4.983-.525 4.983-1.33 0-.543-.572-1.063-.572-1.063-.577-.526-.917-1.33-.917-1.33 2.205-1.458 2.564-3.453 2.564-3.453 1.125 2.095 1.365 3.683 1.365 3.683.113 1.215 1.03.69 1.03-.115 0-2.654-2.162-7.094-2.162-7.094v-1.195c0-5.96-4.026-7.325-6.29-7.325z"
                                 />
                             </svg>
                         </div>
-                        <h3>{{ t('community.platforms.forum.title') }}</h3>
-                        <p>{{ t('community.platforms.forum.description') }}</p>
-                        <div class="platform-stats">
-                            <span>{{ t('community.platforms.forum.stats') }}</span>
-                        </div>
+                        <h3>{{ t('community.platforms.qq.title') }}</h3>
+                        <p>{{ t('community.platforms.qq.description') }}</p>
                         <button class="platform-btn">
-                            {{ t('community.platforms.forum.action') }}
+                            {{ t('community.platforms.qq.action') }}
                         </button>
                     </div>
                 </div>
@@ -129,24 +106,38 @@
                                 }}</span>
                             </div>
                             <div class="code-content">
-                                <div class="contrib-stat">
-                                    <span class="contrib-label">{{
-                                        t('community.contribute.stats.commits')
-                                    }}</span>
-                                    <span class="contrib-value">156</span>
+                                <div v-if="isLoading" class="contrib-loading">
+                                    <div class="loading-spinner"></div>
+                                    <span>{{ t('common.loading') }}</span>
                                 </div>
-                                <div class="contrib-stat">
-                                    <span class="contrib-label">{{
-                                        t('community.contribute.stats.contributors')
-                                    }}</span>
-                                    <span class="contrib-value">42</span>
+                                
+                                <div v-else-if="error" class="contrib-error">
+                                    <span>{{ t('common.error') }}</span>
+                                    <button @click="fetchContributionStats" class="retry-btn">
+                                        {{ t('common.retry') }}
+                                    </button>
                                 </div>
-                                <div class="contrib-stat">
-                                    <span class="contrib-label">{{
-                                        t('community.contribute.stats.mergedPRs')
-                                    }}</span>
-                                    <span class="contrib-value">89</span>
-                                </div>
+                                
+                                <template v-else>
+                                    <div class="contrib-stat">
+                                        <span class="contrib-label">{{
+                                            t('community.contribute.stats.commits')
+                                        }}</span>
+                                        <span class="contrib-value">{{ contributionStats?.commits || 0 }}</span>
+                                    </div>
+                                    <div class="contrib-stat">
+                                        <span class="contrib-label">{{
+                                            t('community.contribute.stats.contributors')
+                                        }}</span>
+                                        <span class="contrib-value">{{ contributionStats?.contributors || 0 }}</span>
+                                    </div>
+                                    <div class="contrib-stat">
+                                        <span class="contrib-label">{{
+                                            t('community.contribute.stats.mergedPRs')
+                                        }}</span>
+                                        <span class="contrib-value">{{ contributionStats?.mergedPRs || 0 }}</span>
+                                    </div>
+                                </template>
                             </div>
                         </div>
                     </div>
@@ -158,12 +149,38 @@
 
 <script setup lang="ts">
 import { useLanguage } from '@/composables/useLanguage'
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
+import { getContributionStats } from '@/api/github'
+import type { ContributionStats } from '@/api/github'
 
 const { t } = useLanguage()
+const contributionStats = ref<ContributionStats | null>(null)
+const isLoading = ref(false)
+const error = ref<string | null>(null)
+
+// 获取贡献统计数据
+async function fetchContributionStats() {
+    isLoading.value = true
+    error.value = null
+    
+    try {
+        const response = await getContributionStats()
+        if (response.success && response.data) {
+            contributionStats.value = response.data
+        } else {
+            error.value = response.error || '获取贡献统计数据失败'
+        }
+    } catch (err) {
+        error.value = err instanceof Error ? err.message : '未知错误'
+        console.error('获取贡献统计数据失败:', err)
+    } finally {
+        isLoading.value = false
+    }
+}
 
 onMounted(() => {
     document.title = `MenthaMC - ${t('community.title')}`
+    fetchContributionStats()
 })
 </script>
 
@@ -261,30 +278,6 @@ onMounted(() => {
     line-height: 1.6;
 }
 
-.hero-stats {
-    display: flex;
-    justify-content: center;
-    gap: 4rem;
-    flex-wrap: wrap;
-}
-
-.stat-item {
-    text-align: center;
-    animation: statSlideUp 0.4s ease-out both;
-}
-
-.stat-item:nth-child(1) {
-    animation-delay: 0.1s;
-}
-
-.stat-item:nth-child(2) {
-    animation-delay: 0.2s;
-}
-
-.stat-item:nth-child(3) {
-    animation-delay: 0.3s;
-}
-
 @keyframes statSlideUp {
     from {
         opacity: 0;
@@ -297,18 +290,6 @@ onMounted(() => {
     }
 }
 
-.stat-number {
-    display: block;
-    font-size: 3rem;
-    font-weight: 700;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 0.5rem;
-    animation: numberCount 2s ease-out 1.5s both;
-}
-
 @keyframes numberCount {
     from {
         transform: scale(0.8);
@@ -319,11 +300,6 @@ onMounted(() => {
         transform: scale(1);
         opacity: 1;
     }
-}
-
-.stat-label {
-    color: #a0a0a0;
-    font-size: 1.1rem;
 }
 
 /* 社区平台 */
@@ -382,8 +358,8 @@ onMounted(() => {
     border-color: #24292e;
 }
 
-.platform-card.forum {
-    border-color: #00d4aa;
+.platform-card.qq {
+    border-color: #12B7F5;
 }
 
 .platform-icon {
@@ -410,8 +386,8 @@ onMounted(() => {
     color: #ffffff;
 }
 
-.forum .platform-icon {
-    color: #00d4aa;
+.qq .platform-icon {
+    color: #12B7F5;
 }
 
 .platform-card h3 {
@@ -425,15 +401,6 @@ onMounted(() => {
     color: #a0a0a0;
     line-height: 1.6;
     margin-bottom: 1.5rem;
-}
-
-.platform-stats {
-    margin-bottom: 2rem;
-}
-
-.platform-stats span {
-    color: #667eea;
-    font-weight: 600;
 }
 
 .platform-btn {
@@ -629,6 +596,57 @@ onMounted(() => {
     font-size: 1.1rem;
 }
 
+.contrib-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem 0;
+    color: #a0a0a0;
+}
+
+.loading-spinner {
+    width: 30px;
+    height: 30px;
+    border: 3px solid rgba(102, 126, 234, 0.3);
+    border-radius: 50%;
+    border-top-color: #667eea;
+    animation: spin 1s ease-in-out infinite;
+    margin-bottom: 0.5rem;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.contrib-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem 0;
+    color: #ff6b6b;
+}
+
+.retry-btn {
+    background: transparent;
+    color: #667eea;
+    border: 1px solid #667eea;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.retry-btn:hover {
+    background: rgba(102, 126, 234, 0.1);
+    transform: translateY(-2px);
+}
+
 /* 响应式设计 */
 @media (max-width: 1024px) {
     .guide-content {
@@ -648,10 +666,6 @@ onMounted(() => {
 
     .hero-stats {
         gap: 2rem;
-    }
-
-    .stat-number {
-        font-size: 2rem;
     }
 
     .platforms-grid {

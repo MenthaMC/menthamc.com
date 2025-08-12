@@ -391,12 +391,12 @@ export default {
                 description: 'View source code, submit issues, and contribute to open source',
                 action: 'Visit GitHub',
             },
-            forum: {
-                title: 'Community Forum',
+            qq: {
+                title: 'QQ Group',
                 description:
                     'In-depth technical discussions, experience sharing, and official announcements',
-                action: 'Visit Forum',
-                stats: '5,000+ Discussion Topics',
+                action: 'Join QQ Group',
+                stats: '5,000+ Group Members',
             },
         },
         feed: {

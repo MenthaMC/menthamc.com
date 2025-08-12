@@ -283,11 +283,11 @@ export default {
                 description: '查看源代码，提交问题反馈，参与开源贡献',
                 action: '访问 GitHub',
             },
-            forum: {
-                title: '社区论坛',
+            qq: {
+                title: 'QQ交流群',
                 description: '深度技术讨论，分享使用经验，获取官方公告',
-                action: '访问论坛',
-                stats: '5,000+ 讨论话题',
+                action: '加入QQ群',
+                stats: '5,000+ 群成员',
             },
         },
         feed: {
