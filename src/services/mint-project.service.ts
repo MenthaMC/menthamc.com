@@ -266,7 +266,7 @@ export class MintProjectService {
         const timeoutId = setTimeout(() => controller.abort(), 10000) // 10秒超时
 
         try {
-          const response = await fetch(`https://api.github.com/repos/${this.OWNER}/${this.REPO}/releases/latest`, {
+          const response = await fetch(`http://api.menthamc.com:8080/v2/github/repos/${this.OWNER}/${this.REPO}/releases/latest`, {
             signal: controller.signal,
             headers: {
               'Accept': 'application/vnd.github.v3+json',
@@ -309,7 +309,7 @@ export class MintProjectService {
       cacheKey,
       async () => {
         const response = await fetch(
-          `https://api.github.com/repos/${this.OWNER}/${this.REPO}/releases?per_page=${limit}`,
+          `http://api.menthamc.com:8080/v2/github/repos/${this.OWNER}/${this.REPO}/releases?per_page=${limit}`,
           {
             headers: {
               'Accept': 'application/vnd.github.v3+json',
@@ -417,7 +417,7 @@ export class MintProjectService {
       async () => {
         // 并行获取仓库信息、最新版本和分支信息
         const [repoResponse, latestRelease, allReleases, branches] = await Promise.all([
-          fetch(`https://api.github.com/repos/${this.OWNER}/${this.REPO}`, {
+          fetch(`http://api.menthamc.com:8080/v2/github/repos/${this.OWNER}/${this.REPO}`, {
             headers: {
               'Accept': 'application/vnd.github.v3+json',
               'User-Agent': 'MenthaMC-Website/1.0'
@@ -497,7 +497,7 @@ export class MintProjectService {
       async () => {
         // 直接通过标签获取提交信息，简化API调用
         const commitResponse = await fetch(
-          `https://api.github.com/repos/${this.OWNER}/${this.REPO}/commits/${tagName}`,
+          `http://api.menthamc.com:8080/v2/github/repos/${this.OWNER}/${this.REPO}/commits/${tagName}`,
           {
             headers: {
               'Accept': 'application/vnd.github.v3+json',
