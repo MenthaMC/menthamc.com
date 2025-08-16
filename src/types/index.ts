@@ -257,7 +257,6 @@ export interface AppConfig {
     };
   };
   github: {
-    token: string;
     baseUrl: string;
     timeout: number;
     retryAttempts: number;

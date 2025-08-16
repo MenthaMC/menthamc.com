@@ -1,16 +1,16 @@
 <template>
-    <section class="download-section">
+    <section class="download-section" data-enter-animation="fadeInUp" data-scroll-animate>
         <div class="container">
             <!-- 标题区域 -->
-            <div class="section-header">
-                <h2 class="section-title">{{ $t('download.options.title') }}</h2>
-                <p class="section-subtitle">{{ $t('download.options.description') }}</p>
+            <div class="section-header" data-enter-animation="fadeInUp" data-scroll-animate>
+                <h2 class="section-title text-reveal">{{ $t('download.options.title') }}</h2>
+                <p class="section-subtitle" data-enter-animation="fadeInUp">{{ $t('download.options.description') }}</p>
             </div>
 
-            <!-- 版本选择下拉框 -->
-            <div class="version-selector">
+            <!-- 分支选择下拉框 -->
+            <div class="version-selector animated-card interactive-hover" data-enter-animation="zoomIn" data-scroll-animate data-hover-animate>
                 <div class="selector-wrapper">
-                    <label class="selector-label">选择版本</label>
+                    <label class="selector-label">{{ $t('download.options.selectVersion') }}</label>
                     <div class="dropdown-container">
                         <button 
                             class="dropdown-trigger" 
@@ -19,14 +19,11 @@
                         >
                             <div class="selected-version">
                                 <div class="version-info">
-                                    <span class="version-name">{{ selectedVersion.name }}</span>
-                                    <span class="version-status" :class="selectedVersion.status">
-                                        {{ getStatusText(selectedVersion.status) }}
-                                    </span>
+                                    <span class="version-name">{{ selectedBranch.name }}</span>
                                 </div>
                                 <div class="version-meta">
-                                    <span class="version-size">{{ selectedVersion.size }}</span>
-                                    <span class="version-date">{{ selectedVersion.date }}</span>
+                                    <span class="version-size">{{ $t('download.options.latestCommit') }}: {{ selectedBranch.commit }}</span>
+                                    <span class="version-date">{{ formatDate(selectedBranch.commitDate) }}</span>
                                 </div>
                             </div>
                             <div class="dropdown-icon" :class="{ rotated: isDropdownOpen }">
@@ -38,28 +35,25 @@
                         
                         <div class="dropdown-menu" :class="{ open: isDropdownOpen }">
                             <div 
-                                v-for="version in allVersions" 
-                                :key="version.id"
+                                v-for="branch in allBranches" 
+                                :key="branch.id"
                                 class="dropdown-item"
                                 :class="{ 
-                                    selected: selectedVersion.id === version.id,
-                                    deprecated: version.status === 'deprecated'
+                                    selected: selectedBranch.id === branch.id,
+                                    deprecated: branch.status === 'deprecated'
                                 }"
-                                @click="selectVersion(version)"
+                                @click="selectBranch(branch)"
                             >
                                 <div class="item-content">
                                     <div class="item-header">
-                                        <span class="item-name">{{ version.name }}</span>
-                                        <span class="item-status" :class="version.status">
-                                            {{ getStatusText(version.status) }}
-                                        </span>
+                                        <span class="item-name">{{ branch.name }}</span>
                                     </div>
                                     <div class="item-meta">
-                                        <span class="item-size">{{ version.size }}</span>
-                                        <span class="item-date">{{ version.date }}</span>
+                                        <span class="item-size">{{ $t('download.options.latestCommit') }}: {{ branch.commit }}</span>
+                                        <span class="item-date">{{ formatDate(branch.commitDate) }}</span>
                                     </div>
                                 </div>
-                                <div class="item-check" v-if="selectedVersion.id === version.id">
+                                <div class="item-check" v-if="selectedBranch.id === branch.id">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <polyline points="20,6 9,17 4,12"></polyline>
                                     </svg>
@@ -69,34 +63,34 @@
                     </div>
                 </div>
                 
-                <!-- 选中版本的详细信息 -->
+                <!-- 选中分支的详细信息 -->
                 <div class="selected-details">
                     <div class="detail-item">
-                        <div class="detail-icon">📦</div>
+                        <div class="detail-icon">🚀</div>
                         <div class="detail-content">
-                            <span class="detail-label">{{ $t('download.options.fileSpecs.fileSize') }}</span>
-                            <span class="detail-value">{{ selectedVersion.size }}</span>
+                            <span class="detail-label">{{ $t('download.options.versionType') }}</span>
+                            <span class="detail-value">{{ selectedBranch.versionType || $t('download.options.loading') }}</span>
                         </div>
                     </div>
                     <div class="detail-item">
                         <div class="detail-icon">🔧</div>
                         <div class="detail-content">
-                            <span class="detail-label">{{ $t('download.options.fileSpecs.buildNumber') }}</span>
-                            <span class="detail-value">#{{ selectedVersion.buildNumber || buildNumber }}</span>
+                            <span class="detail-label">{{ $t('download.options.commitHash') }}</span>
+                            <span class="detail-value">{{ selectedBranch.commit || $t('download.options.loading') }}</span>
                         </div>
                     </div>
                     <div class="detail-item">
                         <div class="detail-icon">📅</div>
                         <div class="detail-content">
-                            <span class="detail-label">{{ $t('download.options.fileSpecs.releaseDate') }}</span>
-                            <span class="detail-value">{{ selectedVersion.date }}</span>
+                            <span class="detail-label">{{ $t('download.options.releaseDate') }}</span>
+                            <span class="detail-value">{{ formatDate(selectedBranch.commitDate) || $t('download.options.loading') }}</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- 下载按钮 -->
-                <div class="download-actions">
-                    <button class="download-btn primary" @click="downloadSelected">
+                <div class="download-actions stagger-animation" data-enter-animation="slideInUp" data-scroll-animate>
+                    <button class="download-btn primary animated-button interactive-hover" @click="downloadSelected" data-hover-animate data-click-animate>
                         <div class="btn-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -105,27 +99,26 @@
                             </svg>
                         </div>
                         <div class="btn-content">
-                            <span class="btn-text">{{ $t('download.options.actions.download') }}</span>
-                            <span class="btn-subtext">{{ selectedVersion.name }}</span>
+                            <span class="btn-text">{{ $t('download.options.downloadNow') }}</span>
                         </div>
                     </button>
 
-                    <div class="secondary-actions">
-                        <button class="action-btn" @click="viewChangelog">
+                    <div class="secondary-actions stagger-animation">
+                        <button class="action-btn interactive-hover" @click="viewChangelog" data-hover-animate data-click-animate>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                                 <polyline points="14,2 14,8 20,8" />
                             </svg>
                             {{ $t('download.options.actions.changelog') }}
                         </button>
-                        <button class="action-btn" @click="viewDocs">
+                        <button class="action-btn interactive-hover" @click="viewDocs" data-hover-animate data-click-animate>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
                                 <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
                             </svg>
                             {{ $t('download.options.actions.docs') }}
                         </button>
-                        <button class="action-btn" @click="verifyFile">
+                        <button class="action-btn interactive-hover" @click="verifyFile" data-hover-animate data-click-animate>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M9 12l2 2 4-4" />
                                 <path d="M21 12c-1 0-3-1-3-3s2-3 3-3 3 1 3 3-2 3-3 3" />
@@ -140,64 +133,186 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { mintProjectService } from '@/services/mint-project.service'
+import { GitHubApiService } from '@/services/github-api.service'
+import { api } from '@/main'
+import type { MintReleaseInfo } from '@/services/mint-project.service'
 
 const { t } = useI18n()
 
+// 定义props接收最新构建信息
+interface Props {
+  latestBuild?: MintReleaseInfo
+}
+
+const props = defineProps<Props>()
+
+// 定义emit事件
+const emit = defineEmits<{
+  latestBuildReady: [build: MintReleaseInfo]
+}>()
+
+// GitHub API 服务实例
+const githubApi = new GitHubApiService()
+
+// 带超时和回退的API调用函数
+const fetchWithFallback = async (url: string, timeout: number = 10000): Promise<Response> => {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), timeout)
+    
+    try {
+        // 首先尝试使用代理API
+        const response = await fetch(url, {
+            signal: controller.signal,
+            headers: {
+                'Accept': 'application/vnd.github.v3+json',
+                'User-Agent': 'MenthaMC-Website'
+            }
+        })
+        
+        clearTimeout(timeoutId)
+        
+        if (response.ok) {
+            console.log('代理API调用成功:', url)
+            return response
+        }
+        
+        // 如果代理API失败，抛出错误以触发回退
+        throw new Error(`代理API响应失败: ${response.status}`)
+        
+    } catch (error) {
+        clearTimeout(timeoutId)
+        
+        // 如果是超时或其他错误，尝试直接使用GitHub API
+        console.warn('代理API失败，尝试使用GitHub API回退:', error)
+        
+        // 提取GitHub API路径
+        const githubPath = url.replace(`${api}/github/`, '')
+        const directUrl = `https://api.github.com/${githubPath}`
+        
+        try {
+            const fallbackController = new AbortController()
+            const fallbackTimeoutId = setTimeout(() => fallbackController.abort(), timeout)
+            
+            const fallbackResponse = await fetch(directUrl, {
+                signal: fallbackController.signal,
+                headers: {
+                    'Accept': 'application/vnd.github.v3+json',
+                    'User-Agent': 'MenthaMC-Website'
+                }
+            })
+            
+            clearTimeout(fallbackTimeoutId)
+            
+            if (fallbackResponse.ok) {
+                console.log('GitHub API回退成功:', directUrl)
+                return fallbackResponse
+            }
+            
+            throw new Error(`GitHub API也失败了: ${fallbackResponse.status}`)
+            
+        } catch (fallbackError) {
+            console.error('GitHub API回退也失败:', fallbackError)
+            
+            // 如果所有API都失败，返回模拟数据以保证基本功能
+            console.warn('所有API都失败，使用模拟数据')
+            return new Response(JSON.stringify({
+                default_branch: 'main',
+                message: 'API调用失败，使用默认数据'
+            }), {
+                status: 200,
+                headers: { 'Content-Type': 'application/json' }
+            })
+        }
+    }
+}
+
+// 增强的分支信息获取函数，带有多重回退策略
+const fetchBranchesWithFallback = async (): Promise<any[]> => {
+    try {
+        // 尝试获取分支列表
+        const branchesResponse = await fetchWithFallback(`${api}/github/repos/MenthaMC/Mint/branches?per_page=50`)
+        const branches = await branchesResponse.json()
+        
+        if (Array.isArray(branches) && branches.length > 0) {
+            return branches
+        }
+        
+        // 如果分支列表为空或无效，使用默认分支
+        throw new Error('分支列表为空')
+        
+    } catch (error) {
+        console.warn('获取分支列表失败，使用默认分支:', error)
+        
+        // 返回默认分支信息
+        return [{
+            name: 'main',
+            commit: {
+                sha: 'unknown'
+            },
+            protected: true
+        }]
+    }
+}
+
+// 增强的仓库信息获取函数
+const fetchRepositoryWithFallback = async (): Promise<any> => {
+    try {
+        const repoResponse = await fetchWithFallback(`${api}/github/repos/MenthaMC/Mint`)
+        const repoData = await repoResponse.json()
+        
+        if (repoData && repoData.default_branch) {
+            return repoData
+        }
+        
+        throw new Error('仓库信息无效')
+        
+    } catch (error) {
+        console.warn('获取仓库信息失败，使用默认值:', error)
+        
+        // 返回默认仓库信息
+        return {
+            default_branch: 'main',
+            name: 'Mint',
+            full_name: 'MenthaMC/Mint'
+        }
+    }
+}
+
 // 响应式数据
-const currentVersion = ref('1.21.8')
-const fileSize = ref('45.2MB')
-const buildNumber = ref('95')
-const releaseDate = ref('2024-01-15')
-const downloadUrl = ref('')
+const currentBranch = ref('main')
 const isLoading = ref(false)
 const isDropdownOpen = ref(false)
 
-const allVersions = ref([
+interface BranchInfo {
+    id: number;
+    name: string;
+    status: string;
+    commit: string;
+    protected: boolean;
+    fullCommit?: string;
+    commitDate?: string;
+    commitMessage?: string;
+    fileSize?: string;
+    fileSizeBytes?: number;
+    versionType?: string;
+}
+
+const allBranches = ref<BranchInfo[]>([
     {
         id: 1,
-        name: 'Mint 1.21.8',
-        status: 'latest',
-        size: '45.2MB',
-        date: '2024-01-15',
-        downloadUrl: '',
-        buildNumber: '95'
+        name: 'main',
+        status: 'default',
+        commit: '',
+        protected: true
     },
-    {
-        id: 2,
-        name: 'Mint 1.21.4',
-        status: 'stable',
-        size: '44.8MB',
-        date: '2024-01-10',
-        downloadUrl: '',
-        buildNumber: '92'
-    },
-    {
-        id: 3,
-        name: 'Mint 1.21.3',
-        status: 'legacy',
-        size: '44.5MB',
-        date: '2024-01-05',
-        downloadUrl: '',
-        buildNumber: '89'
-    },
-    {
-        id: 4,
-        name: 'Mint 1.21.2',
-        status: 'deprecated',
-        size: '44.2MB',
-        date: '2023-12-28',
-        downloadUrl: '',
-        buildNumber: '86'
-    }
 ])
 
-const selectedVersion = ref(allVersions.value[0])
+const selectedBranch = ref<BranchInfo>(allBranches.value[0])
 
-// 获取最新版本信息
-const fetchReleaseInfo = async () => {
+// 获取分支信息
+const fetchBranchInfo = async () => {
     if (isLoading.value) {
         return
     }
@@ -205,36 +320,141 @@ const fetchReleaseInfo = async () => {
     try {
         isLoading.value = true
         
-        const latestRelease = await mintProjectService.getLatestRelease()
+        // 使用增强的回退机制获取仓库信息
+        const repoInfo = await fetchRepositoryWithFallback()
+        const defaultBranch: string = repoInfo.default_branch || 'main'
+        console.log('默认分支:', defaultBranch)
         
-        if (latestRelease) {
-            currentVersion.value = latestRelease.version
-            buildNumber.value = latestRelease.buildNumber
-            fileSize.value = latestRelease.fileSize
-            releaseDate.value = latestRelease.releaseDate
-            downloadUrl.value = latestRelease.downloadUrl
-        }
+        // 使用增强的回退机制获取分支列表
+        const branches = await fetchBranchesWithFallback()
+        console.log('获取到分支数量:', branches.length)
+        
+        if (branches.length > 0) {
+            // 获取每个分支的提交信息以获取时间
+            const branchesWithTime = await Promise.all(
+                branches.map(async (branch, index) => {
+                    try {
+                        // 使用回退机制获取分支最新提交的详细信息
+                        const commitResponse = await fetchWithFallback(`${api}/github/repos/MenthaMC/Mint/commits/${branch.commit.sha}`)
+                        const commitData = await commitResponse.json()
+                        
+                        // 获取文件大小信息
+                        let fileSize = '计算中...'
+                        let fileSizeBytes = 0
+                        let releaseDate = commitData.commit?.committer?.date || commitData.commit?.author?.date || new Date().toISOString()
 
-        // 获取所有版本
-        const allReleases = await mintProjectService.getAllReleases(10)
-        if (allReleases.length > 0) {
-            const versions = allReleases.map((release, index) => ({
-                id: index + 1,
-                name: `Mint ${release.version}`,
-                status: index === 0 ? 'latest' : index === 1 ? 'stable' : index === 2 ? 'legacy' : 'deprecated',
-                size: release.fileSize,
-                date: release.releaseDate,
-                downloadUrl: release.downloadUrl,
-                version: release.version,
-                buildNumber: release.buildNumber
-            }))
+                        // 通过API判断版本类型
+                        let versionType = ''
+                        try {
+                            // 检查是否有对应的Release
+                            const releaseResponse = await fetchWithFallback(`${api}/github/repos/MenthaMC/Mint/releases`)
+                            const releases = await releaseResponse.json()
+                            const hasRelease = releases.some((release: any) => 
+                                release.target_commitish === branch.name || 
+                                release.tag_name.includes(branch.name)
+                            )
+                            
+                            if (hasRelease) {
+                                // 检查是否为预发布版
+                                const prerelease = releases.find((release: any) => 
+                                    (release.target_commitish === branch.name || release.tag_name.includes(branch.name)) &&
+                                    release.prerelease
+                                )
+                                
+                                if (prerelease) {
+                                    versionType = '预发布版'
+                                } else {
+                                    versionType = branch.name === defaultBranch ? '最新版本' : '发布版'
+                                }
+                            } else if (branch.name === defaultBranch) {
+                                versionType = '最新版本'
+                            } else if (branch.name.includes('dev') || branch.name.includes('develop')) {
+                                versionType = '预发布版'
+                            } else if (branch.name.includes('beta') || branch.name.includes('alpha')) {
+                                versionType = '预发布版'
+                            }
+                        } catch (error) {
+                            console.warn(`获取分支 ${branch.name} 的版本类型失败:`, error)
+                            // 根据分支名称推断版本类型
+                            if (branch.name === defaultBranch) {
+                                versionType = '最新发布版'
+                            } else if (branch.name.includes('dev') || branch.name.includes('develop') || 
+                                      branch.name.includes('beta') || branch.name.includes('alpha')) {
+                                versionType = '预发布版'
+                            }
+                        }
+
+                        return {
+                            id: index + 1,
+                            name: branch.name,
+                            status: branch.name === defaultBranch ? 'default' : 
+                                   branch.name === 'dev' || branch.name === 'develop' ? 'development' : 
+                                   branch.name.includes('release') ? 'release' : 'feature',
+                            commit: branch.commit.sha.substring(0, 7),
+                            protected: branch.protected,
+                            fullCommit: branch.commit.sha,
+                            commitDate: releaseDate,
+                            commitMessage: commitData.commit?.message?.split('\n')[0] || '',
+                            fileSize: fileSize,
+                            fileSizeBytes: fileSizeBytes,
+                            versionType: versionType
+                        }
+                    } catch (error) {
+                        console.warn(`获取分支 ${branch.name} 的提交信息失败:`, error)
+                        return {
+                            id: index + 1,
+                            name: branch.name,
+                            status: branch.name === defaultBranch ? 'default' : 
+                                   branch.name === 'dev' || branch.name === 'develop' ? 'development' : 
+                                   branch.name.includes('release') ? 'release' : 'feature',
+                            commit: branch.commit.sha.substring(0, 7),
+                            protected: branch.protected,
+                            fullCommit: branch.commit.sha,
+                            commitDate: new Date().toISOString(),
+                            commitMessage: '',
+                            fileSize: '大小未知',
+                            fileSizeBytes: 0
+                        }
+                    }
+                })
+            )
             
-            allVersions.value = versions
-            selectedVersion.value = versions[0]
+            // 按时间排序（最新的在前），但默认分支始终在第一位
+            const sortedBranches = branchesWithTime.sort((a, b) => {
+                // 默认分支始终在第一位
+                if (a.name === defaultBranch) return -1
+                if (b.name === defaultBranch) return 1
+                
+                // 其他分支按提交时间排序（最新的在前）
+                return new Date(b.commitDate).getTime() - new Date(a.commitDate).getTime()
+            })
+            
+            allBranches.value = sortedBranches
+            selectedBranch.value = sortedBranches[0]
+            
+            // 更新当前分支信息
+            if (sortedBranches[0]) {
+                currentBranch.value = sortedBranches[0].name
+            }
         }
         
     } catch (error) {
-        console.error('获取版本信息失败:', error)
+        console.error('获取分支信息失败:', error)
+        // 如果获取失败，使用默认分支
+        const defaultBranchInfo: BranchInfo = {
+            id: 1,
+            name: 'main',
+            status: 'default',
+            commit: 'unknown',
+            protected: true,
+            fullCommit: '',
+            commitDate: new Date().toISOString(),
+            commitMessage: '',
+            fileSize: '大小未知',
+            fileSizeBytes: 0,
+        }
+        allBranches.value = [defaultBranchInfo]
+        selectedBranch.value = defaultBranchInfo
     } finally {
         isLoading.value = false
     }
@@ -245,57 +465,281 @@ const toggleDropdown = () => {
     isDropdownOpen.value = !isDropdownOpen.value
 }
 
-const selectVersion = (version: any) => {
-    selectedVersion.value = version
+const selectBranch = (branch: BranchInfo) => {
+    selectedBranch.value = branch
     isDropdownOpen.value = false
 }
 
-const downloadSelected = () => {
-    if (selectedVersion.value.downloadUrl) {
-        const link = document.createElement('a')
-        link.href = selectedVersion.value.downloadUrl
-        link.download = `mint-${selectedVersion.value.version || selectedVersion.value.name.split(' ')[1]}.jar`
-        link.style.display = 'none'
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-    } else {
-        // 备用下载方式
-        const version = selectedVersion.value.version || selectedVersion.value.name.split(' ')[1]
-        const filename = `mint-${version}.jar`
-        const fallbackUrl = `https://github.com/MenthaMC/Mint/releases/download/v${version}/${filename}`
+// 最新构建信息
+const latestBuildInfo = ref<MintReleaseInfo | null>(null)
+
+// 监听props中的latestBuild变化
+watch(() => props.latestBuild, (newBuild) => {
+    if (newBuild) {
+        console.log('接收到最新构建信息:', newBuild)
+        latestBuildInfo.value = newBuild
+    }
+})
+
+const downloadSelected = async () => {
+    try {
+        const branchName = selectedBranch.value?.name || 'main'
+        console.log('开始下载选中分支:', branchName)
         
-        const link = document.createElement('a')
-        link.href = fallbackUrl
-        link.download = filename
-        link.style.display = 'none'
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
+        // 优先使用最新构建信息
+        if (latestBuildInfo.value && latestBuildInfo.value.version.includes(branchName)) {
+            // 使用最新构建信息中的下载链接
+            if (latestBuildInfo.value.downloadUrl) {
+                console.log('使用最新构建信息下载:', latestBuildInfo.value.downloadUrl)
+                const link = document.createElement('a')
+                link.href = latestBuildInfo.value.downloadUrl
+                link.download = `mint-${latestBuildInfo.value.version}.jar`
+                link.target = '_blank'
+                link.style.display = 'none'
+                
+                document.body.appendChild(link)
+                link.click()
+                document.body.removeChild(link)
+                
+                alert(`开始下载 Mint ${latestBuildInfo.value.version}`)
+                return
+            }
+        }
+        
+        // 根据分支类型采用不同的下载策略
+        if (branchName === 'main' || branchName === 'master') {
+            // 主分支：获取最新Release的JAR文件
+            try {
+                console.log('获取主分支最新Release...')
+                const releasesResponse = await fetchWithFallback(`${api}/github/repos/MenthaMC/Mint/releases/latest`)
+                const releaseData = await releasesResponse.json()
+                
+                console.log('获取到Release数据:', releaseData)
+                
+                // 查找JAR文件
+                const jarAsset = releaseData.assets?.find((asset: any) => 
+                    asset.name.toLowerCase().endsWith('.jar') && 
+                    !asset.name.toLowerCase().includes('sources') && 
+                    !asset.name.toLowerCase().includes('javadoc')
+                )
+                
+                if (jarAsset) {
+                    console.log('找到JAR文件:', jarAsset.name)
+                    // 下载JAR文件
+                    const link = document.createElement('a')
+                    link.href = jarAsset.browser_download_url
+                    link.download = jarAsset.name
+                    link.target = '_blank'
+                    link.style.display = 'none'
+                    
+                    document.body.appendChild(link)
+                    link.click()
+                    document.body.removeChild(link)
+                    
+                    alert(`开始下载 ${jarAsset.name}`)
+                    return
+                } else {
+                    console.warn('主分支Release中未找到JAR文件')
+                }
+            } catch (releaseError) {
+                console.warn('无法获取主分支Release信息:', releaseError)
+            }
+        } else {
+            // 非主分支：尝试查找该分支对应的Release
+            try {
+                console.log(`查找分支 ${branchName} 的Release...`)
+                const releasesResponse = await fetchWithFallback(`${api}/github/repos/MenthaMC/Mint/releases?per_page=50`)
+                const releases = await releasesResponse.json()
+                
+                // 查找目标分支的Release
+                const branchRelease = releases.find((release: any) => 
+                    release.target_commitish === branchName || 
+                    release.tag_name.includes(branchName) ||
+                    release.name?.includes(branchName)
+                )
+                
+                if (branchRelease) {
+                    console.log(`找到分支 ${branchName} 的Release:`, branchRelease.tag_name)
+                    
+                    // 查找JAR文件
+                    const jarAsset = branchRelease.assets?.find((asset: any) => 
+                        asset.name.toLowerCase().endsWith('.jar') && 
+                        !asset.name.toLowerCase().includes('sources') && 
+                        !asset.name.toLowerCase().includes('javadoc')
+                    )
+                    
+                    if (jarAsset) {
+                        console.log('找到分支JAR文件:', jarAsset.name)
+                        const link = document.createElement('a')
+                        link.href = jarAsset.browser_download_url
+                        link.download = jarAsset.name
+                        link.target = '_blank'
+                        link.style.display = 'none'
+                        
+                        document.body.appendChild(link)
+                        link.click()
+                        document.body.removeChild(link)
+                        
+                        alert(`开始下载 ${jarAsset.name}`)
+                        return
+                    } else {
+                        console.warn(`分支 ${branchName} 的Release中未找到JAR文件，下载源码包`)
+                        // 如果没有JAR文件，下载源码包
+                        const link = document.createElement('a')
+                        link.href = branchRelease.zipball_url
+                        link.download = `mint-${branchRelease.tag_name}-source.zip`
+                        link.target = '_blank'
+                        link.style.display = 'none'
+                        
+                        document.body.appendChild(link)
+                        link.click()
+                        document.body.removeChild(link)
+                        
+                        alert(`分支 ${branchName} 暂无编译好的JAR文件，已下载源码包`)
+                        return
+                    }
+                } else {
+                    console.log(`分支 ${branchName} 没有对应的Release，下载最新提交的源码`)
+                    // 如果没有Release，下载分支的最新源码
+                    const link = document.createElement('a')
+                    link.href = `https://github.com/MenthaMC/Mint/archive/refs/heads/${branchName}.zip`
+                    link.download = `mint-${branchName}-latest.zip`
+                    link.target = '_blank'
+                    link.style.display = 'none'
+                    
+                    document.body.appendChild(link)
+                    link.click()
+                    document.body.removeChild(link)
+                    
+                    alert(`分支 ${branchName} 暂无发布版本，已下载最新源码`)
+                    return
+                }
+            } catch (branchError) {
+                console.warn(`查找分支 ${branchName} 的Release失败:`, branchError)
+                // 回退到下载分支源码
+                try {
+                    const link = document.createElement('a')
+                    link.href = `https://github.com/MenthaMC/Mint/archive/refs/heads/${branchName}.zip`
+                    link.download = `mint-${branchName}-latest.zip`
+                    link.target = '_blank'
+                    link.style.display = 'none'
+                    
+                    document.body.appendChild(link)
+                    link.click()
+                    document.body.removeChild(link)
+                    
+                    alert(`无法获取分支 ${branchName} 的发布信息，已下载最新源码`)
+                    return
+                } catch (sourceError) {
+                    console.error('下载分支源码也失败:', sourceError)
+                }
+            }
+        }
+        
+        // 最终回退：直接打开GitHub Releases页面
+        console.log('使用最终回退策略：打开GitHub Releases页面')
+        window.open('https://github.com/MenthaMC/Mint/releases', '_blank')
+        alert('正在跳转到GitHub Releases页面，请手动下载最新版本')
+        
+    } catch (error) {
+        console.error('下载过程中发生错误:', error)
+        // 错误处理回退
+        window.open('https://github.com/MenthaMC/Mint/releases', '_blank')
+        alert('下载遇到问题，已为您打开GitHub页面，请手动下载')
     }
 }
 
 const viewChangelog = () => {
-    const version = selectedVersion.value.version || selectedVersion.value.name.split(' ')[1]
-    window.open(`https://github.com/MenthaMC/Mint/releases/tag/v${version}`, '_blank')
+    try {
+        const branchName = selectedBranch.value?.name || 'main'
+        const changelogUrl = `https://github.com/MenthaMC/Mint/commits/${branchName}`
+        console.log('打开更新日志:', changelogUrl)
+        window.open(changelogUrl, '_blank')
+    } catch (error) {
+        console.error('打开更新日志失败:', error)
+        // 回退到主分支
+        window.open('https://github.com/MenthaMC/Mint/commits/main', '_blank')
+    }
 }
 
 const viewDocs = () => {
-    window.open('https://menthamc.github.io/docs/', '_blank')
-}
-
-const verifyFile = () => {
-    alert(t('download.options.alerts.verifyInDevelopment'))
-}
-
-const getStatusText = (status: string) => {
-    const statusMap: Record<string, string> = {
-        latest: t('download.options.badges.latest'),
-        stable: t('download.options.badges.stable'),
-        legacy: t('download.options.badges.legacy'),
-        deprecated: t('download.options.badges.deprecated')
+    try {
+        const docsUrl = 'https://menthamc.github.io/docs/'
+        console.log('打开文档:', docsUrl)
+        window.open(docsUrl, '_blank')
+    } catch (error) {
+        console.error('打开文档失败:', error)
+        // 回退到GitHub仓库
+        window.open('https://github.com/MenthaMC/Mint', '_blank')
     }
-    return statusMap[status] || status
+}
+
+const verifyFile = async () => {
+    try {
+        console.log('尝试获取文件校验信息...')
+        // 尝试获取最新Release的校验信息
+        const releasesResponse = await fetchWithFallback(`${api}/github/repos/MenthaMC/Mint/releases/latest`)
+        const releaseData = await releasesResponse.json()
+        
+        if (releaseData && releaseData.body) {
+            // 检查Release描述中是否包含校验信息
+            const hasChecksum = releaseData.body.toLowerCase().includes('sha') || 
+                              releaseData.body.toLowerCase().includes('md5') ||
+                              releaseData.body.toLowerCase().includes('checksum')
+            
+            if (hasChecksum) {
+                // 如果有校验信息，显示Release页面
+                window.open(releaseData.html_url, '_blank')
+                alert('请在Release页面查看文件校验信息')
+                return
+            }
+        }
+        
+        // 如果没有找到校验信息，显示开发中提示
+        alert(t('download.options.alerts.verifyInDevelopment') || '文件校验功能正在开发中')
+        
+    } catch (error) {
+        console.error('获取校验信息失败:', error)
+        // 回退策略：显示开发中提示
+        alert(t('download.options.alerts.verifyInDevelopment') || '文件校验功能正在开发中，请手动验证文件完整性')
+    }
+}
+
+const getBranchStatusText = (status: string) => {
+    const statusMap: Record<string, string> = {
+        default: '最新版本',
+        development: '预发行版本',
+    }
+    return statusMap[status] || '未知版本'
+}
+
+const formatDate = (dateString: string) => {
+    if (!dateString) return ''
+    
+    try {
+        const date = new Date(dateString)
+        const now = new Date()
+        const diffMs = now.getTime() - date.getTime()
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+        const diffMinutes = Math.floor(diffMs / (1000 * 60))
+        
+        if (diffMinutes < 60) {
+            return `${diffMinutes} 分钟前`
+        } else if (diffHours < 24) {
+            return `${diffHours} 小时前`
+        } else if (diffDays < 7) {
+            return `${diffDays} 天前`
+        } else {
+            return date.toLocaleDateString('zh-CN', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            })
+        }
+    } catch (error) {
+        return ''
+    }
 }
 
 // 点击外部关闭下拉菜单
@@ -307,7 +751,7 @@ const handleClickOutside = (event: MouseEvent) => {
 }
 
 onMounted(() => {
-    fetchReleaseInfo()
+    fetchBranchInfo()
     document.addEventListener('click', handleClickOutside)
 })
 
@@ -530,6 +974,34 @@ onUnmounted(() => {
     max-height: 400px;
     opacity: 1;
     transform: translateY(0);
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* 自定义滚动条样式 */
+.dropdown-menu::-webkit-scrollbar {
+    width: 6px;
+}
+
+.dropdown-menu::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+    transition: background 0.3s ease;
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Firefox 滚动条样式 */
+.dropdown-menu {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.05);
 }
 
 .dropdown-item {
@@ -734,11 +1206,6 @@ onUnmounted(() => {
 .btn-text {
     font-size: 16px;
     font-weight: 600;
-}
-
-.btn-subtext {
-    font-size: 12px;
-    opacity: 0.8;
 }
 
 /* 辅助操作 */

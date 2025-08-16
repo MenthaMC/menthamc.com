@@ -1,19 +1,24 @@
 <template>
-    <section class="projects-showcase">
+    <section class="projects-showcase" data-scroll-animate>
         <div class="container">
-            <div class="section-header">
+            <div class="section-header" data-scroll-animate>
                 <h2 class="section-title">{{ $t('home.projects.title') }}</h2>
                 <p class="section-description">
                     {{ $t('home.projects.description') }}
                 </p>
             </div>
 
-            <div class="projects-grid">
+            <div class="projects-grid stagger-animation">
                 <div
-                    class="project-card featured"
+                    class="project-card animated-card interactive-hover"
                     v-for="(project, index) in projects"
                     :key="index"
                     :class="{ featured: project.featured }"
+                    data-hover-animate
+                    data-scroll-animate
+                    data-enter-animation="zoomIn"
+                    data-click-animate
+                    data-mouse-follow
                 >
                     <!-- 左侧图标区域 -->
                     <div class="project-left">
@@ -37,6 +42,7 @@
                                 class="feature-tag"
                                 v-for="feature in project.features"
                                 :key="feature"
+                                data-hover-animate
                             >
                                 {{ feature }}
                             </div>
@@ -60,26 +66,28 @@
 
                     <!-- 右侧操作区域 -->
                     <div class="project-actions">
-                        <button class="action-btn primary" @click="handleDownload(project)">
+                        <button class="action-btn primary" @click="handleDownload(project)" data-hover-animate data-click-animate>
                             <span class="btn-icon">⬇️</span>
                             <span>{{ $t('home.projects.actions.download') }}</span>
                         </button>
                         <button
                             class="action-btn secondary"
                             @click="handleGitHub(project.githubUrl)"
+                            data-hover-animate
+                            data-click-animate
                         >
                             <span class="btn-icon">🔗</span>
                             <span>GitHub</span>
                         </button>
                     </div>
 
-                    <div class="project-glow" v-if="project.featured"></div>
+                    <div class="project-glow rotate-animation" v-if="project.featured"></div>
                 </div>
             </div>
 
-            <div class="more-projects">
+            <div class="more-projects" data-scroll-animate>
                 <p class="more-text">{{ $t('home.projects.more.text') }}</p>
-                <button class="more-btn" @click="handleViewAll">
+                <button class="more-btn" @click="handleViewAll" data-hover-animate data-click-animate>
                     <span>{{ $t('home.projects.more.button') }}</span>
                     <span class="btn-arrow">→</span>
                 </button>

@@ -46,14 +46,19 @@ const handleDownload = () => {
     console.log(t('hero.actions.download'))
     emit('download')
     props.onDownload?.()
-    // TODO: 实现下载逻辑
+    // 跳转到下载页面
+    window.location.href = '/download'
 }
 
 const handleLearnMore = () => {
     console.log(t('hero.actions.learnMore'))
     emit('learnMore')
     props.onLearnMore?.()
-    // TODO: 实现了解更多逻辑
+    // 滚动到特性展示区域
+    const featuresSection = document.querySelector('.features-showcase')
+    if (featuresSection) {
+        featuresSection.scrollIntoView({ behavior: 'smooth' })
+    }
 }
 </script>
 

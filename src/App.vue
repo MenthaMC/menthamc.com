@@ -1,7 +1,10 @@
 <template>
     <Navbar />
+    
+    <!-- 全局浮动粒子容器 -->
+    <div class="floating-particles-container"></div>
 
-    <main class="main-content">
+    <main class="main-content" data-animate>
         <router-view v-slot="{ Component, route }">
             <transition name="page" mode="out-in">
                 <component :is="Component" :key="route.path" />
@@ -12,8 +15,20 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import Footer from './components/Footer.vue'
 import Navbar from './components/Navbar.vue'
+import { useGlobalAnimations } from './composables/useGlobalAnimations'
+
+const { initGlobalAnimations } = useGlobalAnimations()
+
+onMounted(() => {
+    // 为整个应用添加平滑滚动
+    document.documentElement.style.scrollBehavior = 'smooth'
+    
+    // 初始化全局动画系统
+    initGlobalAnimations()
+})
 </script>
 
 <style>

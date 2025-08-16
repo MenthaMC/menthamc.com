@@ -1,7 +1,7 @@
 <template>
-    <div class="community-page">
+    <div class="community-page" data-animate>
         <!-- 页面头部 -->
-        <section class="community-hero">
+        <section class="community-hero" data-scroll-animate>
             <div class="hero-background">
                 <div class="hero-particles"></div>
             </div>
@@ -14,11 +14,11 @@
         </section>
 
         <!-- 社区平台 -->
-        <section class="community-platforms">
+        <section class="community-platforms" data-scroll-animate>
             <div class="container">
                 <h2 class="section-title">{{ t('community.platforms.title') }}</h2>
                 <div class="platforms-grid">
-                    <div class="platform-card discord">
+                    <div class="platform-card discord" data-hover-animate data-click-animate @click="openDiscord">
                         <div class="platform-icon">
                             <svg viewBox="0 0 24 24" fill="currentColor">
                                 <path
@@ -28,12 +28,12 @@
                         </div>
                         <h3>{{ t('community.platforms.discord.title') }}</h3>
                         <p>{{ t('community.platforms.discord.description') }}</p>
-                        <button class="platform-btn">
+                        <button class="platform-btn" @click.stop="openDiscord">
                             {{ t('community.platforms.discord.action') }}
                         </button>
                     </div>
 
-                    <div class="platform-card github">
+                    <div class="platform-card github" data-hover-animate data-click-animate @click="openGitHub">
                         <div class="platform-icon">
                             <svg viewBox="0 0 24 24" fill="currentColor">
                                 <path
@@ -43,22 +43,22 @@
                         </div>
                         <h3>{{ t('community.platforms.github.title') }}</h3>
                         <p>{{ t('community.platforms.github.description') }}</p>
-                        <button class="platform-btn">
+                        <button class="platform-btn" @click.stop="openGitHub">
                             {{ t('community.platforms.github.action') }}
                         </button>
                     </div>
 
-                    <div class="platform-card qq">
+                    <div class="platform-card qq" data-hover-animate data-click-animate @click="openQQ">
                         <div class="platform-icon">
-                            <svg viewBox="0 0 24 24" fill="currentColor">
+                            <svg viewBox="0 0 1024 1024" fill="currentColor">
                                 <path
-                                    d="M12.003 2c-2.265 0-6.29 1.364-6.29 7.325v1.195S3.55 14.96 3.55 17.614c0 .805.917 1.33 1.03.115 0 0 .24-1.588 1.365-3.683 0 0 .36 1.995 2.565 3.453 0 0-.34.804-.917 1.33 0 0-.572.52-.572 1.063 0 .805 1.605 1.33 4.983 1.33 3.378 0 4.983-.525 4.983-1.33 0-.543-.572-1.063-.572-1.063-.577-.526-.917-1.33-.917-1.33 2.205-1.458 2.564-3.453 2.564-3.453 1.125 2.095 1.365 3.683 1.365 3.683.113 1.215 1.03.69 1.03-.115 0-2.654-2.162-7.094-2.162-7.094v-1.195c0-5.96-4.026-7.325-6.29-7.325z"
+                                    d="M824.8 613.2c-16-51.4-34.4-94.6-62.7-165.3C766.5 262.2 689.3 112 511.5 112 331.7 112 256.2 265.2 261 447.9c-28.4 70.8-46.7 113.7-62.7 165.3-34 109.5-23 154.8-14.6 155.8 18 2.2 70.1-82.4 70.1-82.4 0 49 25.2 112.9 79.8 159-26.4 8.1-85.7 29.9-71.6 53.8 11.4 19.3 196.2 12.3 249.5 6.3 53.3 6 238.1 13 249.5-6.3 14.1-23.8-45.3-45.7-71.6-53.8 54.6-46.2 79.8-110.1 79.8-159 0 0 52.1 84.6 70.1 82.4 8.5-1.1 19.5-46.4-14.5-155.8z"
                                 />
                             </svg>
                         </div>
                         <h3>{{ t('community.platforms.qq.title') }}</h3>
                         <p>{{ t('community.platforms.qq.description') }}</p>
-                        <button class="platform-btn">
+                        <button class="platform-btn" @click.stop="openQQ">
                             {{ t('community.platforms.qq.action') }}
                         </button>
                     </div>
@@ -67,28 +67,28 @@
         </section>
 
         <!-- 贡献指南 -->
-        <section class="contribution-guide">
+        <section class="contribution-guide" data-scroll-animate>
             <div class="container">
                 <div class="guide-content">
                     <div class="guide-text">
                         <h2>{{ t('community.contribute.title') }}</h2>
                         <p>{{ t('community.contribute.description') }}</p>
                         <div class="guide-steps">
-                            <div class="step-item">
+                            <div class="step-item" data-scroll-animate>
                                 <div class="step-number">1</div>
                                 <div class="step-content">
                                     <h4>{{ t('community.contribute.steps.0.title') }}</h4>
                                     <p>{{ t('community.contribute.steps.0.description') }}</p>
                                 </div>
                             </div>
-                            <div class="step-item">
+                            <div class="step-item" data-scroll-animate>
                                 <div class="step-number">2</div>
                                 <div class="step-content">
                                     <h4>{{ t('community.contribute.steps.1.title') }}</h4>
                                     <p>{{ t('community.contribute.steps.1.description') }}</p>
                                 </div>
                             </div>
-                            <div class="step-item">
+                            <div class="step-item" data-scroll-animate>
                                 <div class="step-number">3</div>
                                 <div class="step-content">
                                     <h4>{{ t('community.contribute.steps.2.title') }}</h4>
@@ -96,9 +96,9 @@
                                 </div>
                             </div>
                         </div>
-                        <button class="cta-btn">{{ t('community.contribute.action') }}</button>
+                        <button class="cta-btn" data-hover-animate data-click-animate @click="openContribute">{{ t('community.contribute.action') }}</button>
                     </div>
-                    <div class="guide-visual">
+                    <div class="guide-visual" data-scroll-animate>
                         <div class="code-preview">
                             <div class="code-header">
                                 <span class="code-title">{{
@@ -149,6 +149,7 @@
 
 <script setup lang="ts">
 import { useLanguage } from '@/composables/useLanguage'
+import { usePageTransition } from '@/composables/usePageTransition'
 import { onMounted, ref } from 'vue'
 import { getContributionStats } from '@/api/github'
 import type { ContributionStats } from '@/api/github'
@@ -168,14 +169,34 @@ async function fetchContributionStats() {
         if (response.success && response.data) {
             contributionStats.value = response.data
         } else {
-            error.value = response.error || '获取贡献统计数据失败'
+            error.value = response.error || t('community.contribute.stats.fetchError')
         }
     } catch (err) {
-        error.value = err instanceof Error ? err.message : '未知错误'
-        console.error('获取贡献统计数据失败:', err)
+        error.value = err instanceof Error ? err.message : t('community.contribute.stats.unknownError')
+        console.error(t('community.contribute.stats.fetchError') + ':', err)
     } finally {
         isLoading.value = false
     }
+}
+
+// 打开Discord服务器
+function openDiscord() {
+    window.open('https://discord.com/invite/PK4YAtAHpr', '_blank')
+}
+
+// 打开QQ群
+function openQQ() {
+    window.open('https://qm.qq.com/q/RKzZJH4JKW', '_blank')
+}
+
+// 打开GitHub仓库
+function openGitHub() {
+    window.open('https://github.com/orgs/MenthaMC/repositories', '_blank')
+}
+
+// 打开贡献页面
+function openContribute() {
+    window.open('https://github.com/MenthaMC/Mint/pulls', '_blank')
 }
 
 onMounted(() => {

@@ -1,5 +1,7 @@
+import { api } from '@/main'
+import { cacheFirstRequest, createCacheKey, type CacheFirstResponse } from './cache-first-request.service'
+
 export interface GitHubConfig {
-  token?: string;
   baseUrl?: string;
   timeout?: number;
   retryAttempts?: number;
@@ -44,8 +46,7 @@ export class GitHubApiService {
 
   constructor(config: GitHubConfig = {}) {
     this.config = {
-      token: config.token || import.meta.env.VITE_GITHUB_TOKEN || '',
-      baseUrl: config.baseUrl || 'https://api.github.com',
+      baseUrl: config.baseUrl || `${api}/github`,
       timeout: config.timeout || 15000,
       retryAttempts: config.retryAttempts || 5,
       retryDelay: config.retryDelay || 2000
@@ -66,11 +67,6 @@ export class GitHubApiService {
         'User-Agent': 'MenthaMC-Website',
         ...(options.headers as Record<string, string> || {})
       };
-
-      // 安全地添加认证头
-      if (this.config.token && this.config.token.trim()) {
-        headers['Authorization'] = `Bearer ${this.config.token}`;
-      }
 
       const response = await fetch(url, {
         ...options,
@@ -98,7 +94,8 @@ export class GitHubApiService {
       } catch (error) {
         lastError = error as Error;
         
-        console.warn(`GitHub API ${context} 失败 (尝试 ${attempt}/${this.config.retryAttempts}):`, error);
+        // 使用新的日志系统替代console.warn
+        // console.warn(`GitHub API ${context} 失败 (尝试 ${attempt}/${this.config.retryAttempts}):`, error);
 
         // 检查是否是速率限制或权限错误
         if (error instanceof Error && 'status' in error) {
@@ -106,14 +103,14 @@ export class GitHubApiService {
           if (status === 403) {
             // 403错误可能是速率限制或权限问题
             const delayMs = this.config.retryDelay * Math.pow(2, attempt - 1); // 指数退避
-            console.log(`API访问受限 (403)，等待 ${delayMs}ms 后重试... (尝试 ${attempt}/${this.config.retryAttempts})`);
+            // console.log(`API访问受限 (403)，等待 ${delayMs}ms 后重试... (尝试 ${attempt}/${this.config.retryAttempts})`);
             await this.delay(delayMs);
             continue;
           }
           if (status === 429) {
             // 429是明确的速率限制
             const delayMs = this.config.retryDelay * Math.pow(2, attempt - 1);
-            console.log(`API速率限制 (429)，等待 ${delayMs}ms 后重试... (尝试 ${attempt}/${this.config.retryAttempts})`);
+            // console.log(`API速率限制 (429)，等待 ${delayMs}ms 后重试... (尝试 ${attempt}/${this.config.retryAttempts})`);
             await this.delay(delayMs);
             continue;
           }
@@ -129,15 +126,15 @@ export class GitHubApiService {
   }
 
   async getUserInfo(username: string): Promise<GitHubUser> {
-    return this.executeWithRetry(async () => {
-      const response = await this.fetchWithTimeout(`${this.config.baseUrl}/users/${username}`);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      
-      return await response.json() as GitHubUser;
-    }, `获取用户信息 (${username})`);
+    const cacheKey = createCacheKey('github:user', { username });
+    
+    const response = await cacheFirstRequest.request<GitHubUser>(cacheKey, {
+      url: `${this.config.baseUrl}/users/${username}`,
+      method: 'GET',
+      cacheTtl: 10 * 60 * 1000 // 10分钟缓存
+    });
+
+    return response.data;
   }
 
   async getUserRepositories(username: string, options: {
@@ -146,36 +143,33 @@ export class GitHubApiService {
     sort?: 'created' | 'updated' | 'pushed' | 'full_name';
     direction?: 'asc' | 'desc';
   } = {}): Promise<GitHubRepository[]> {
-    return this.executeWithRetry(async () => {
-      const params = new URLSearchParams({
-        per_page: (options.per_page || 30).toString(),
-        page: (options.page || 1).toString(),
-        sort: options.sort || 'updated',
-        direction: options.direction || 'desc'
-      });
+    const cacheKey = createCacheKey('github:user-repos', { username, ...options });
+    const params = new URLSearchParams({
+      per_page: (options.per_page || 30).toString(),
+      page: (options.page || 1).toString(),
+      sort: options.sort || 'updated',
+      direction: options.direction || 'desc'
+    });
 
-      const response = await this.fetchWithTimeout(
-        `${this.config.baseUrl}/users/${username}/repos?${params}`
-      );
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      
-      return await response.json() as GitHubRepository[];
-    }, `获取用户仓库 (${username})`);
+    const response = await cacheFirstRequest.request<GitHubRepository[]>(cacheKey, {
+      url: `${this.config.baseUrl}/users/${username}/repos?${params}`,
+      method: 'GET',
+      cacheTtl: 5 * 60 * 1000 // 5分钟缓存
+    });
+
+    return response.data;
   }
 
   async getRepository(owner: string, repo: string): Promise<GitHubRepository> {
-    return this.executeWithRetry(async () => {
-      const response = await this.fetchWithTimeout(`${this.config.baseUrl}/repos/${owner}/${repo}`);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      
-      return await response.json() as GitHubRepository;
-    }, `获取仓库信息 (${owner}/${repo})`);
+    const cacheKey = createCacheKey('github:repo', { owner, repo });
+    
+    const response = await cacheFirstRequest.request<GitHubRepository>(cacheKey, {
+      url: `${this.config.baseUrl}/repos/${owner}/${repo}`,
+      method: 'GET',
+      cacheTtl: 10 * 60 * 1000 // 10分钟缓存
+    });
+
+    return response.data;
   }
 
   async searchRepositories(query: string, options: {
@@ -184,51 +178,41 @@ export class GitHubApiService {
     per_page?: number;
     page?: number;
   } = {}): Promise<{ items: GitHubRepository[]; total_count: number }> {
-    return this.executeWithRetry(async () => {
-      const params = new URLSearchParams({
-        q: query,
-        sort: options.sort || 'stars',
-        order: options.order || 'desc',
-        per_page: (options.per_page || 30).toString(),
-        page: (options.page || 1).toString()
-      });
+    const cacheKey = createCacheKey('github:search', { query, ...options });
+    const params = new URLSearchParams({
+      q: query,
+      sort: options.sort || 'stars',
+      order: options.order || 'desc',
+      per_page: (options.per_page || 30).toString(),
+      page: (options.page || 1).toString()
+    });
 
-      const response = await this.fetchWithTimeout(
-        `${this.config.baseUrl}/search/repositories?${params}`
-      );
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      return {
-        items: data.items as GitHubRepository[],
-        total_count: data.total_count
-      };
-    }, `搜索仓库 (${query})`);
+    const response = await cacheFirstRequest.request<{ items: GitHubRepository[]; total_count: number }>(cacheKey, {
+      url: `${this.config.baseUrl}/search/repositories?${params}`,
+      method: 'GET',
+      cacheTtl: 3 * 60 * 1000 // 3分钟缓存（搜索结果变化较快）
+    });
+
+    return response.data;
   }
 
   async getBranches(owner: string, repo: string, options: {
     per_page?: number;
     page?: number;
   } = {}): Promise<GitHubBranch[]> {
-    return this.executeWithRetry(async () => {
-      const params = new URLSearchParams({
-        per_page: (options.per_page || 30).toString(),
-        page: (options.page || 1).toString()
-      });
+    const cacheKey = createCacheKey('github:branches', { owner, repo, ...options });
+    const params = new URLSearchParams({
+      per_page: (options.per_page || 30).toString(),
+      page: (options.page || 1).toString()
+    });
 
-      const response = await this.fetchWithTimeout(
-        `${this.config.baseUrl}/repos/${owner}/${repo}/branches?${params}`
-      );
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      
-      return await response.json() as GitHubBranch[];
-    }, `获取分支列表 (${owner}/${repo})`);
+    const response = await cacheFirstRequest.request<GitHubBranch[]>(cacheKey, {
+      url: `${this.config.baseUrl}/repos/${owner}/${repo}/branches?${params}`,
+      method: 'GET',
+      cacheTtl: 5 * 60 * 1000 // 5分钟缓存
+    });
+
+    return response.data;
   }
 
   async getRateLimit(): Promise<{
@@ -259,14 +243,14 @@ export class GitHubApiService {
       used: number;
     };
   }> {
-    return this.executeWithRetry(async () => {
-      const response = await this.fetchWithTimeout(`${this.config.baseUrl}/rate_limit`);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      
-      return await response.json();
-    }, '获取API限制信息');
+    const cacheKey = 'github:rate-limit';
+    
+    const response = await cacheFirstRequest.request(cacheKey, {
+      url: `${this.config.baseUrl}/rate_limit`,
+      method: 'GET',
+      cacheTtl: 30 * 1000 // 30秒缓存（速率限制信息变化较快）
+    });
+
+    return response.data;
   }
 }

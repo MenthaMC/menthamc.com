@@ -1,6 +1,7 @@
 import type { GitHubRelease, GitHubRepository, GitHubCommit, BuildCommitInfo } from '@/types'
 import { renderSize } from '@/utils/helpers'
 import { GitHubApiService } from './github-api.service'
+import { cacheFirstRequest, createCacheKey } from './cache-first-request.service'
 import { api } from '@/main'
 
 export interface LemonMIntReleaseInfo {
@@ -69,7 +70,6 @@ export class LemonMIntProjectService {
 
   constructor() {
     this.githubApi = new GitHubApiService({
-      token: import.meta.env.VITE_GITHUB_TOKEN,
       retryAttempts: 5,
       retryDelay: 3000,
       timeout: 20000
@@ -260,84 +260,56 @@ export class LemonMIntProjectService {
   async getLatestRelease(options: CacheOptions = {}): Promise<LemonMIntReleaseInfo | null> {
     const cacheKey = 'lemint:latest-release'
     
-    return this.getCachedOrFetch(
-      cacheKey,
-      async () => {
-        const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 10000) // 10秒超时
+    try {
+      const response = await cacheFirstRequest.request<GitHubRelease>(cacheKey, {
+        url: `${api}/github/repos/${this.OWNER}/${this.REPO}/releases/latest`,
+        method: 'GET',
+        headers: {
+          'Accept': 'application/vnd.github.v3+json',
+          'User-Agent': 'MenthaMC-Website/1.0'
+        },
+        cacheTtl: options.ttl || this.SHORT_CACHE_TTL,
+        skipCache: options.forceRefresh
+      })
 
-        try {
-          const response = await fetch(`${api}/github/repos/${this.OWNER}/${this.REPO}/releases/latest`, {
-            signal: controller.signal,
-            headers: {
-              'Accept': 'application/vnd.github.v3+json',
-              'User-Agent': 'MenthaMC-Website/1.0'
-            }
-          })
-          
-          clearTimeout(timeoutId)
-          
-          if (!response.ok) {
-            if (response.status === 404) {
-              throw new Error('仓库或发布版本不存在')
-            }
-            if (response.status === 403) {
-              throw new Error('GitHub API访问受限。请配置GITHUB_TOKEN环境变量以提高访问限制')
-            }
-            if (response.status === 429) {
-              throw new Error('GitHub API速率限制，请稍后重试')
-            }
-            throw new Error(`GitHub API请求失败: ${response.status} ${response.statusText}`)
-          }
-
-          const release: GitHubRelease = await response.json()
-          return await this.transformReleaseData(release)
-        } finally {
-          clearTimeout(timeoutId)
-        }
-      },
-      { ttl: this.SHORT_CACHE_TTL, ...options }
-    )
+      return await this.transformReleaseData(response.data)
+    } catch (error) {
+      console.error('获取LemonMInt最新版本失败:', error)
+      
+      // 返回模拟数据作为降级方案
+      return this.getMockData(cacheKey) as LemonMIntReleaseInfo
+    }
   }
 
   /**
    * 获取所有版本列表
    */
   async getAllReleases(limit: number = 10, options: CacheOptions = {}): Promise<LemonMIntReleaseInfo[]> {
-    const cacheKey = `lemint:all-releases:${limit}`
+    const cacheKey = createCacheKey('lemint:all-releases', { limit })
     
-    const result = await this.getCachedOrFetch(
-      cacheKey,
-      async () => {
-        const response = await fetch(
-          `${api}/github/repos/${this.OWNER}/${this.REPO}/releases?per_page=${limit}`,
-          {
-            headers: {
-              'Accept': 'application/vnd.github.v3+json',
-              'User-Agent': 'MenthaMC-Website/1.0'
-            }
-          }
-        )
-        
-        if (!response.ok) {
-          if (response.status === 403) {
-            throw new Error('GitHub API访问受限。请配置GITHUB_TOKEN环境变量以提高访问限制')
-          }
-          if (response.status === 429) {
-            throw new Error('GitHub API速率限制，请稍后重试')
-          }
-          throw new Error(`GitHub API请求失败: ${response.status}`)
-        }
+    try {
+      const response = await cacheFirstRequest.request<GitHubRelease[]>(cacheKey, {
+        url: `${api}/github/repos/${this.OWNER}/${this.REPO}/releases?per_page=${limit}`,
+        method: 'GET',
+        headers: {
+          'Accept': 'application/vnd.github.v3+json',
+          'User-Agent': 'MenthaMC-Website/1.0'
+        },
+        cacheTtl: options.ttl || this.DEFAULT_CACHE_TTL,
+        skipCache: options.forceRefresh
+      })
 
-        const releases: GitHubRelease[] = await response.json()
-        return await Promise.all(
-          releases.map(release => this.transformReleaseData(release))
-        )
-      },
-      { ttl: this.DEFAULT_CACHE_TTL, ...options }
-    )
-
-    return result || []
+      const releases = await Promise.all(
+        response.data.map(release => this.transformReleaseData(release))
+      )
+      
+      return releases
+    } catch (error) {
+      console.error('获取LemonMInt所有版本失败:', error)
+      
+      // 返回模拟数据作为降级方案
+      return this.getMockData(cacheKey) as LemonMIntReleaseInfo[] || []
+    }
   }
 
   /**

@@ -1,17 +1,20 @@
 <template>
-    <section class="hero-section">
+    <section class="hero-section" data-enter-animation="fadeInUp" data-scroll-animate>
+        <!-- 浮动粒子容器 -->
+        <div class="floating-particles-container"></div>
+        
         <!-- 动态背景网格 -->
-        <div class="grid-background">
+        <div class="grid-background" data-parallax="0.2">
             <div class="grid-line" v-for="i in 20" :key="'h-' + i" :style="{ top: (i * 5) + '%' }" data-direction="horizontal"></div>
             <div class="grid-line" v-for="i in 20" :key="'v-' + i" :style="{ left: (i * 5) + '%' }" data-direction="vertical"></div>
         </div>
         
         <!-- 浮动几何图形 -->
-        <div class="floating-shapes">
-            <div class="shape shape-1"></div>
-            <div class="shape shape-2"></div>
-            <div class="shape shape-3"></div>
-            <div class="shape shape-4"></div>
+        <div class="floating-shapes" data-mouse-follow>
+            <div class="shape shape-1" data-parallax="0.3"></div>
+            <div class="shape shape-2" data-parallax="0.4"></div>
+            <div class="shape shape-3" data-parallax="0.2"></div>
+            <div class="shape shape-4" data-parallax="0.5"></div>
         </div>
         
         <div class="hero-container">
@@ -31,20 +34,20 @@
                 </div>
                 
                 <!-- 副标题 -->
-                <div class="subtitle-container">
-                    <p class="hero-subtitle">{{ $t('download.hero.subtitle') }}</p>
-                    <div class="subtitle-accent"></div>
+                <div class="subtitle-container" data-enter-animation="fadeInUp" data-scroll-animate>
+                    <p class="hero-subtitle" data-parallax="0.1">{{ $t('download.hero.subtitle') }}</p>
+                    <div class="subtitle-accent shimmer-animation"></div>
                 </div>
                 
                 <!-- 行动号召 -->
-                <div class="cta-section">
-                    <div class="cta-arrow">
+                <div class="cta-section" data-enter-animation="slideInUp" data-scroll-animate>
+                    <div class="cta-arrow bounce-animation interactive-hover" data-hover-animate data-click-animate>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="7,13 12,18 17,13"></polyline>
                             <polyline points="7,6 12,11 17,6"></polyline>
                         </svg>
                     </div>
-                    <span class="cta-text">{{ $t('download.hero.cta') || '立即下载' }}</span>
+                    <span class="cta-text" data-enter-animation="fadeInUp">{{ $t('download.hero.cta') || '立即下载' }}</span>
                 </div>
             </div>
         </div>

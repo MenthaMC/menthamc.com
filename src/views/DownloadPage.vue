@@ -13,18 +13,29 @@
         </div>
         
         <!-- 页面内容 -->
-        <div class="page-content">
-            <DownloadHero />
-            <DownloadOptions />
-            <BuildHistory />
+        <div class="page-content" data-animate>
+            <DownloadHero data-scroll-animate />
+            <DownloadOptions :latestBuild="latestBuild" data-scroll-animate />
+            <BuildHistory @latestBuildReady="handleLatestBuildReady" data-scroll-animate />
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import BuildHistory from '@/components/download/BuildHistory.vue'
 import DownloadHero from '@/components/download/DownloadHero.vue'
 import DownloadOptions from '@/components/download/DownloadOptions.vue'
+import type { MintReleaseInfo } from '@/services/mint-project.service'
+
+// 存储最新构建信息
+const latestBuild = ref<MintReleaseInfo | undefined>(undefined)
+
+// 处理最新构建信息
+const handleLatestBuildReady = (buildInfo: MintReleaseInfo) => {
+    latestBuild.value = buildInfo
+    console.log('最新构建信息已更新:', buildInfo)
+}
 
 // 生成粒子样式
 const getParticleStyle = (particleIndex: number) => {

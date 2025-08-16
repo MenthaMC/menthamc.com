@@ -199,3 +199,6 @@ html {
     backface-visibility: hidden;
     transform: translateZ(0);
 }
+
+/* 引入动画样式 */
+@import './animations.css';

@@ -1,12 +1,12 @@
 <template>
-    <section class="features-showcase">
+    <section class="features-showcase" data-scroll-animate data-enter-animation="fadeInUp">
         <div class="container">
-            <div class="section-header">
+            <div class="section-header" data-scroll-animate>
                 <h2 class="section-title">{{ $t('home.features.title') }}</h2>
             </div>
 
-            <div class="features-grid">
-                <div class="feature-item" v-for="(feature, index) in features" :key="index">
+            <div class="features-grid stagger-animation">
+                <div class="feature-item" v-for="(feature, index) in features" :key="index" data-hover-animate data-scroll-animate>
                     <div class="feature-icon">
                         <span v-html="feature.icon"></span>
                     </div>
@@ -26,10 +26,10 @@
                 </div>
             </div>
 
-            <div class="performance-comparison">
+            <div class="performance-comparison" data-scroll-animate>
                 <h3 class="comparison-title">{{ $t('home.features.comparison.title') }}</h3>
                 <div class="comparison-chart">
-                    <div class="chart-item">
+                    <div class="chart-item" data-scroll-animate>
                         <div class="chart-bar">
                             <div class="bar-fill vanilla" style="height: 40%"></div>
                         </div>
@@ -37,24 +37,24 @@
                             $t('home.features.comparison.vanilla')
                         }}</span>
                     </div>
-                    <div class="chart-item">
+                    <div class="chart-item" data-scroll-animate>
                         <div class="chart-bar">
                             <div class="bar-fill paper" style="height: 65%"></div>
                         </div>
                         <span class="chart-label">Paper</span>
                     </div>
-                    <div class="chart-item">
+                    <div class="chart-item" data-scroll-animate>
                         <div class="chart-bar">
                             <div class="bar-fill folia" style="height: 80%"></div>
                         </div>
                         <span class="chart-label">Folia</span>
                     </div>
-                    <div class="chart-item highlight">
+                    <div class="chart-item highlight" data-scroll-animate>
                         <div class="chart-bar">
                             <div class="bar-fill mint" style="height: 95%"></div>
                         </div>
                         <span class="chart-label">Mint</span>
-                        <div class="performance-badge">
+                        <div class="performance-badge pulse-animation">
                             {{ $t('home.features.comparison.best') }}
                         </div>
                     </div>

@@ -1,6 +1,7 @@
 import type { GitHubRelease, GitHubRepository, GitHubCommit, BuildCommitInfo } from '@/types'
 import { renderSize } from '@/utils/helpers'
 import { GitHubApiService } from './github-api.service'
+import { cacheFirstRequest, createCacheKey } from './cache-first-request.service'
 import { api } from '@/main'
 
 export interface MintReleaseInfo {
@@ -69,7 +70,6 @@ export class MintProjectService {
 
   constructor() {
     this.githubApi = new GitHubApiService({
-      token: import.meta.env.VITE_GITHUB_TOKEN,
       retryAttempts: 5,
       retryDelay: 3000,
       timeout: 20000
@@ -148,14 +148,14 @@ export class MintProjectService {
       // 首先检查缓存
       const cached = this.getCache<T>(cacheKey)
       if (cached !== null) {
-        console.log(`缓存命中 [${cacheKey}]`)
+        // console.log(`缓存命中 [${cacheKey}]`)
         return cached
       }
     }
 
     // 检查是否有相同的请求正在进行
     if (this.pendingRequests.has(cacheKey)) {
-      console.log(`等待进行中的请求 [${cacheKey}]`)
+      // console.log(`等待进行中的请求 [${cacheKey}]`)
       try {
         return await this.pendingRequests.get(cacheKey) as T
       } catch (error) {
@@ -260,84 +260,56 @@ export class MintProjectService {
   async getLatestRelease(options: CacheOptions = {}): Promise<MintReleaseInfo | null> {
     const cacheKey = 'mint:latest-release'
     
-    return this.getCachedOrFetch(
-      cacheKey,
-      async () => {
-        const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 10000) // 10秒超时
+    try {
+      const response = await cacheFirstRequest.request<GitHubRelease>(cacheKey, {
+        url: `${api}/github/repos/${this.OWNER}/${this.REPO}/releases/latest`,
+        method: 'GET',
+        headers: {
+          'Accept': 'application/vnd.github.v3+json',
+          'User-Agent': 'MenthaMC-Website/1.0'
+        },
+        cacheTtl: options.ttl || this.SHORT_CACHE_TTL,
+        skipCache: options.forceRefresh
+      })
 
-        try {
-          const response = await fetch(`${api}/github/repos/${this.OWNER}/${this.REPO}/releases/latest`, {
-            signal: controller.signal,
-            headers: {
-              'Accept': 'application/vnd.github.v3+json',
-              'User-Agent': 'MenthaMC-Website/1.0'
-            }
-          })
-          
-          clearTimeout(timeoutId)
-          
-          if (!response.ok) {
-            if (response.status === 404) {
-              throw new Error('仓库或发布版本不存在')
-            }
-            if (response.status === 403) {
-              throw new Error('GitHub API访问受限。请配置GITHUB_TOKEN环境变量以提高访问限制')
-            }
-            if (response.status === 429) {
-              throw new Error('GitHub API速率限制，请稍后重试')
-            }
-            throw new Error(`GitHub API请求失败: ${response.status} ${response.statusText}`)
-          }
-
-          const release: GitHubRelease = await response.json()
-          return await this.transformReleaseData(release)
-        } finally {
-          clearTimeout(timeoutId)
-        }
-      },
-      { ttl: this.SHORT_CACHE_TTL, ...options }
-    )
+      return await this.transformReleaseData(response.data)
+    } catch (error) {
+      console.error('获取最新版本失败:', error)
+      
+      // 返回模拟数据作为降级方案
+      return this.getMockData(cacheKey) as MintReleaseInfo
+    }
   }
 
   /**
    * 获取所有版本列表
    */
   async getAllReleases(limit: number = 10, options: CacheOptions = {}): Promise<MintReleaseInfo[]> {
-    const cacheKey = `mint:all-releases:${limit}`
+    const cacheKey = createCacheKey('mint:all-releases', { limit })
     
-    const result = await this.getCachedOrFetch(
-      cacheKey,
-      async () => {
-        const response = await fetch(
-          `${api}/github/repos/${this.OWNER}/${this.REPO}/releases?per_page=${limit}`,
-          {
-            headers: {
-              'Accept': 'application/vnd.github.v3+json',
-              'User-Agent': 'MenthaMC-Website/1.0'
-            }
-          }
-        )
-        
-        if (!response.ok) {
-          if (response.status === 403) {
-            throw new Error('GitHub API访问受限。请配置GITHUB_TOKEN环境变量以提高访问限制')
-          }
-          if (response.status === 429) {
-            throw new Error('GitHub API速率限制，请稍后重试')
-          }
-          throw new Error(`GitHub API请求失败: ${response.status}`)
-        }
+    try {
+      const response = await cacheFirstRequest.request<GitHubRelease[]>(cacheKey, {
+        url: `${api}/github/repos/${this.OWNER}/${this.REPO}/releases?per_page=${limit}`,
+        method: 'GET',
+        headers: {
+          'Accept': 'application/vnd.github.v3+json',
+          'User-Agent': 'MenthaMC-Website/1.0'
+        },
+        cacheTtl: options.ttl || this.DEFAULT_CACHE_TTL,
+        skipCache: options.forceRefresh
+      })
 
-        const releases: GitHubRelease[] = await response.json()
-        return await Promise.all(
-          releases.map(release => this.transformReleaseData(release))
-        )
-      },
-      { ttl: this.DEFAULT_CACHE_TTL, ...options }
-    )
-
-    return result || []
+      const releases = await Promise.all(
+        response.data.map(release => this.transformReleaseData(release))
+      )
+      
+      return releases
+    } catch (error) {
+      console.error('获取所有版本失败:', error)
+      
+      // 返回模拟数据作为降级方案
+      return this.getMockData(cacheKey) as MintReleaseInfo[] || []
+    }
   }
 
   /**
@@ -346,34 +318,40 @@ export class MintProjectService {
   async getBranches(options: CacheOptions = {}): Promise<MintBranchInfo[]> {
     const cacheKey = 'mint:branches'
     
-    const result = await this.getCachedOrFetch(
-      cacheKey,
-      async () => {
-        const branches = await this.githubApi.getBranches(this.OWNER, this.REPO, { per_page: 50 })
-        
-        const branchInfos: MintBranchInfo[] = branches.map(branch => ({
-          name: branch.name,
-          displayName: this.getBranchDisplayName(branch.name),
-          sha: branch.commit.sha.substring(0, 7),
-          isDefault: branch.name === 'main' || branch.name === 'master',
-          isProtected: branch.protected
-        }))
+    try {
+      const response = await cacheFirstRequest.request<any[]>(cacheKey, {
+        url: `${api}/github/repos/${this.OWNER}/${this.REPO}/branches?per_page=50`,
+        method: 'GET',
+        headers: {
+          'Accept': 'application/vnd.github.v3+json',
+          'User-Agent': 'MenthaMC-Website/1.0'
+        },
+        cacheTtl: options.ttl || this.DEFAULT_CACHE_TTL,
+        skipCache: options.forceRefresh
+      })
 
-        // 按优先级排序：默认分支 > 开发分支 > 其他分支
-        branchInfos.sort((a, b) => {
-          if (a.isDefault && !b.isDefault) return -1
-          if (!a.isDefault && b.isDefault) return 1
-          if (a.name.includes('dev') && !b.name.includes('dev')) return -1
-          if (!a.name.includes('dev') && b.name.includes('dev')) return 1
-          return a.name.localeCompare(b.name)
-        })
-        
-        return branchInfos
-      },
-      { ttl: this.DEFAULT_CACHE_TTL, ...options }
-    )
+      const branchInfos: MintBranchInfo[] = response.data.map(branch => ({
+        name: branch.name,
+        displayName: this.getBranchDisplayName(branch.name),
+        sha: branch.commit.sha.substring(0, 7),
+        isDefault: branch.name === 'main' || branch.name === 'master',
+        isProtected: branch.protected
+      }))
 
-    return result || []
+      // 按优先级排序：默认分支 > 开发分支 > 其他分支
+      branchInfos.sort((a, b) => {
+        if (a.isDefault && !b.isDefault) return -1
+        if (!a.isDefault && b.isDefault) return 1
+        if (a.name.includes('dev') && !b.name.includes('dev')) return -1
+        if (!a.name.includes('dev') && b.name.includes('dev')) return 1
+        return a.name.localeCompare(b.name)
+      })
+      
+      return branchInfos
+    } catch (error) {
+      console.error('获取分支信息失败:', error)
+      return []
+    }
   }
 
   /**
@@ -413,47 +391,51 @@ export class MintProjectService {
   async getProjectInfo(options: CacheOptions = {}): Promise<MintProjectInfo | null> {
     const cacheKey = 'mint:project-info'
     
-    return this.getCachedOrFetch(
-      cacheKey,
-      async () => {
-        // 并行获取仓库信息、最新版本和分支信息
-        const [repoResponse, latestRelease, allReleases, branches] = await Promise.all([
-          fetch(`${api}/github/repos/${this.OWNER}/${this.REPO}`, {
-            headers: {
-              'Accept': 'application/vnd.github.v3+json',
-              'User-Agent': 'MenthaMC-Website/1.0'
-            }
-          }),
-          this.getLatestRelease({ forceRefresh: true }),
-          this.getAllReleases(5, { forceRefresh: true }),
-          this.getBranches({ forceRefresh: true })
-        ])
+    try {
+      // 并行获取仓库信息、最新版本和分支信息
+      const [repoResponse, latestRelease, allReleases, branches] = await Promise.all([
+        cacheFirstRequest.request<GitHubRepository>('mint:repository', {
+          url: `${api}/github/repos/${this.OWNER}/${this.REPO}`,
+          method: 'GET',
+          headers: {
+            'Accept': 'application/vnd.github.v3+json',
+            'User-Agent': 'MenthaMC-Website/1.0'
+          },
+          cacheTtl: this.LONG_CACHE_TTL,
+          skipCache: options.forceRefresh
+        }),
+        this.getLatestRelease({ forceRefresh: options.forceRefresh }),
+        this.getAllReleases(5, { forceRefresh: options.forceRefresh }),
+        this.getBranches({ forceRefresh: options.forceRefresh })
+      ])
 
-        if (!repoResponse.ok) {
-          throw new Error(`获取仓库信息失败: ${repoResponse.status}`)
+      const repository = repoResponse.data
+
+      if (!latestRelease) {
+        throw new Error('无法获取最新版本信息')
+      }
+
+      const projectInfo: MintProjectInfo = {
+        repository,
+        latestRelease,
+        releases: allReleases,
+        branches,
+        stats: {
+          stars: repository.stargazers_count,
+          forks: repository.forks_count,
+          issues: 0, // 可以通过额外API获取
+          lastUpdate: repository.updated_at
         }
+      }
 
-        const repository: GitHubRepository = await repoResponse.json()
-
-        if (!latestRelease) {
-          throw new Error('无法获取最新版本信息')
-        }
-
-        return {
-          repository,
-          latestRelease,
-          releases: allReleases,
-          branches,
-          stats: {
-            stars: repository.stargazers_count,
-            forks: repository.forks_count,
-            issues: 0, // 可以通过额外API获取
-            lastUpdate: repository.updated_at
-          }
-        }
-      },
-      { ttl: this.LONG_CACHE_TTL, ...options }
-    )
+      // 手动缓存完整项目信息
+      cacheFirstRequest['setCache'](cacheKey, projectInfo, options.ttl || this.LONG_CACHE_TTL)
+      
+      return projectInfo
+    } catch (error) {
+      console.error('获取项目完整信息失败:', error)
+      return null
+    }
   }
 
   /**
@@ -462,60 +444,56 @@ export class MintProjectService {
   async getDownloadStats(options: CacheOptions = {}): Promise<{ totalDownloads: number; releaseDownloads: Record<string, number> }> {
     const cacheKey = 'mint:download-stats'
     
-    const result = await this.getCachedOrFetch(
-      cacheKey,
-      async () => {
-        const releases = await this.getAllReleases(20, { forceRefresh: true }) // 获取更多版本用于统计
-        
-        let totalDownloads = 0
-        const releaseDownloads: Record<string, number> = {}
+    try {
+      const releases = await this.getAllReleases(20, { forceRefresh: options.forceRefresh }) // 获取更多版本用于统计
+      
+      let totalDownloads = 0
+      const releaseDownloads: Record<string, number> = {}
 
-        releases.forEach(release => {
-          let releaseTotal = 0
-          release.assets.forEach(asset => {
-            releaseTotal += asset.downloadCount
-            totalDownloads += asset.downloadCount
-          })
-          releaseDownloads[release.version] = releaseTotal
+      releases.forEach(release => {
+        let releaseTotal = 0
+        release.assets.forEach(asset => {
+          releaseTotal += asset.downloadCount
+          totalDownloads += asset.downloadCount
         })
+        releaseDownloads[release.version] = releaseTotal
+      })
 
-        return { totalDownloads, releaseDownloads }
-      },
-      { ttl: this.LONG_CACHE_TTL, ...options }
-    )
-
-    return result || { totalDownloads: 0, releaseDownloads: {} }
+      const stats = { totalDownloads, releaseDownloads }
+      
+      // 手动缓存统计信息
+      cacheFirstRequest['setCache'](cacheKey, stats, options.ttl || this.LONG_CACHE_TTL)
+      
+      return stats
+    } catch (error) {
+      console.error('获取下载统计失败:', error)
+      return { totalDownloads: 0, releaseDownloads: {} }
+    }
   }
 
   /**
    * 获取指定标签的提交信息
    */
   async getCommitInfoByTag(tagName: string, options: CacheOptions = {}): Promise<BuildCommitInfo | null> {
-    const cacheKey = `mint:commit:${tagName}`
+    const cacheKey = createCacheKey('mint:commit', { tagName })
     
-    return this.getCachedOrFetch(
-      cacheKey,
-      async () => {
-        // 直接通过标签获取提交信息，简化API调用
-        const commitResponse = await fetch(
-          `${api}/github/repos/${this.OWNER}/${this.REPO}/commits/${tagName}`,
-          {
-            headers: {
-              'Accept': 'application/vnd.github.v3+json',
-              'User-Agent': 'MenthaMC-Website/1.0'
-            }
-          }
-        )
+    try {
+      const response = await cacheFirstRequest.request<GitHubCommit>(cacheKey, {
+        url: `${api}/github/repos/${this.OWNER}/${this.REPO}/commits/${tagName}`,
+        method: 'GET',
+        headers: {
+          'Accept': 'application/vnd.github.v3+json',
+          'User-Agent': 'MenthaMC-Website/1.0'
+        },
+        cacheTtl: options.ttl || this.LONG_CACHE_TTL,
+        skipCache: options.forceRefresh
+      })
 
-        if (!commitResponse.ok) {
-          throw new Error(`无法获取标签 ${tagName} 的提交信息: ${commitResponse.status}`)
-        }
-
-        const commit: GitHubCommit = await commitResponse.json()
-        return this.transformCommitData(commit)
-      },
-      { ttl: this.LONG_CACHE_TTL, ...options }
-    )
+      return this.transformCommitData(response.data)
+    } catch (error) {
+      console.error(`获取标签 ${tagName} 的提交信息失败:`, error)
+      return null
+    }
   }
 
   /**
@@ -587,11 +565,28 @@ export class MintProjectService {
    */
   async refreshCache(cacheKey?: string): Promise<void> {
     if (cacheKey) {
+      // 清除全局缓存
+      cacheFirstRequest.clearCache(cacheKey)
+      // 清除本地缓存
       this.cache.delete(cacheKey)
       console.log(`已清除缓存 [${cacheKey}]`)
     } else {
+      // 清除所有Mint相关的全局缓存
+      const cacheStats = cacheFirstRequest.getCacheStats()
+      let clearedCount = 0
+      
+      cacheStats.items.forEach(item => {
+        if (item.key.startsWith('mint:')) {
+          if (cacheFirstRequest.clearCache(item.key)) {
+            clearedCount++;
+          }
+        }
+      })
+      
+      // 清除本地缓存
       this.cache.clear()
-      console.log('已清除所有缓存')
+      this.pendingRequests.clear()
+      console.log(`已清除所有Mint缓存: ${clearedCount} 项全局缓存 + 本地缓存`)
     }
   }
 
@@ -599,7 +594,7 @@ export class MintProjectService {
    * 预热缓存
    */
   async warmupCache(): Promise<void> {
-    console.log('开始预热缓存...')
+    console.log('开始预热Mint项目缓存...')
     
     try {
       await Promise.all([
@@ -607,9 +602,9 @@ export class MintProjectService {
         this.getAllReleases(10),
         this.getBranches()
       ])
-      console.log('缓存预热完成')
+      console.log('Mint项目缓存预热完成')
     } catch (error) {
-      console.warn('缓存预热失败:', error)
+      console.warn('Mint项目缓存预热失败:', error)
     }
   }
 
@@ -617,29 +612,54 @@ export class MintProjectService {
    * 清除缓存
    */
   clearCache(): void {
+    // 清除全局缓存中的Mint相关项
+    const cacheStats = cacheFirstRequest.getCacheStats()
+    let clearedCount = 0
+    
+    cacheStats.items.forEach(item => {
+      if (item.key.startsWith('mint:')) {
+        if (cacheFirstRequest.clearCache(item.key)) {
+          clearedCount++;
+        }
+      }
+    })
+    
+    // 清除本地缓存
     this.cache.clear()
     this.pendingRequests.clear()
-    console.log('Mint项目缓存已清除')
+    console.log(`Mint项目缓存已清除: ${clearedCount} 项全局缓存 + 本地缓存`)
   }
 
   /**
    * 获取服务状态
    */
   getStatus(): {
-    cacheStats: { 
+    localCacheStats: { 
       size: number
       keys: string[]
       pendingRequests: number
     }
+    globalCacheStats: {
+      size: number
+      mintCacheCount: number
+      keys: string[]
+    }
     lastUpdate: number | null
   } {
+    const globalStats = cacheFirstRequest.getCacheStats()
+    const mintCaches = globalStats.items.filter(item => item.key.startsWith('mint:'))
     const latestRelease = this.getCache<MintReleaseInfo>('mint:latest-release')
     
     return {
-      cacheStats: { 
+      localCacheStats: { 
         size: this.cache.size,
         keys: Array.from(this.cache.keys()),
         pendingRequests: this.pendingRequests.size
+      },
+      globalCacheStats: {
+        size: globalStats.size,
+        mintCacheCount: mintCaches.length,
+        keys: mintCaches.map(item => item.key)
       },
       lastUpdate: latestRelease ? Date.now() : null
     }
@@ -648,21 +668,45 @@ export class MintProjectService {
   /**
    * 获取缓存信息
    */
-  getCacheInfo(): Array<{
-    key: string
-    timestamp: number
-    expiresAt: number
-    isExpired: boolean
-    ttl: number
-  }> {
+  getCacheInfo(): {
+    localCache: Array<{
+      key: string
+      timestamp: number
+      expiresAt: number
+      isExpired: boolean
+      ttl: number
+    }>
+    globalCache: Array<{
+      key: string
+      timestamp: number
+      ttl: number
+    }>
+  } {
     const now = Date.now()
-    return Array.from(this.cache.entries()).map(([key, item]) => ({
+    
+    // 本地缓存信息
+    const localCache = Array.from(this.cache.entries()).map(([key, item]) => ({
       key,
       timestamp: item.timestamp,
       expiresAt: item.expiresAt,
       isExpired: now > item.expiresAt,
       ttl: Math.max(0, item.expiresAt - now)
     }))
+
+    // 全局缓存中的Mint相关信息
+    const globalStats = cacheFirstRequest.getCacheStats()
+    const globalCache = globalStats.items
+      .filter(item => item.key.startsWith('mint:'))
+      .map(item => ({
+        key: item.key,
+        timestamp: item.timestamp,
+        ttl: item.ttl
+      }))
+
+    return {
+      localCache,
+      globalCache
+    }
   }
 }
 

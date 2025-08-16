@@ -7,6 +7,42 @@
                 <p class="section-subtitle">{{ $t('download.buildHistory.description') || '查看Mint的版本发布历史和更新记录' }}</p>
             </div>
 
+            <!-- 分页控制栏 -->
+            <div class="pagination-controls">
+                <div class="per-page-selector">
+                    <label>{{ $t('download.buildHistory.perPage') }}：</label>
+                    <div class="custom-select" :class="{ open: isPerPageDropdownOpen }">
+                        <button 
+                            class="select-trigger" 
+                            @click="togglePerPageDropdown"
+                        >
+                        <span>{{ pagination.perPage }}{{ $t('download.buildHistory.items') }}</span>
+                            <svg class="select-arrow" :class="{ rotated: isPerPageDropdownOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="6,9 12,15 18,9"></polyline>
+                            </svg>
+                        </button>
+                        <div class="select-options" v-show="isPerPageDropdownOpen">
+                            <div 
+                                v-for="option in perPageOptions" 
+                                :key="option"
+                                class="select-option"
+                                :class="{ selected: pagination.perPage === option }"
+                                @click="selectPerPage(option)"
+                            >
+                                {{ option }}{{ $t('download.buildHistory.items') }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="pagination-info">
+                    <span v-if="pagination.totalCount > 0">
+                        {{ $t('download.buildHistory.showing') }} {{ (pagination.page - 1) * pagination.perPage + 1 }} - 
+                        {{ Math.min(pagination.page * pagination.perPage, pagination.totalCount) }} {{ $t('download.buildHistory.items') }}，
+                        {{ $t('download.buildHistory.total') }} {{ pagination.totalCount }} {{ $t('download.buildHistory.records') }}
+                    </span>
+                </div>
+            </div>
+
             <!-- 加载状态 -->
             <div v-if="isLoading" class="loading-container">
                 <div class="loading-spinner"></div>
@@ -19,7 +55,7 @@
                     v-for="(release, index) in releases" 
                     :key="release.version"
                     class="timeline-item"
-                    :class="{ 'latest': index === 0 }"
+                    :class="{ 'latest': pagination.page === 1 && index === 0 }"
                 >
                     <!-- 时间线节点 -->
                     <div class="timeline-node">
@@ -33,7 +69,7 @@
                             <div class="version-info">
                                 <h4 class="version-name">Mint {{ release.version }}</h4>
                                 <div class="version-badges">
-                                    <span v-if="index === 0" class="badge latest-badge">
+                                    <span v-if="pagination.page === 1 && index === 0" class="badge latest-badge">
                                         {{ $t('download.buildHistory.badges.latest') || '最新版本' }}
                                     </span>
                                     <span class="badge build-badge">
@@ -134,85 +170,704 @@
                 </div>
             </div>
 
-            <!-- 加载更多按钮 -->
-            <div v-if="!isLoading && releases.length > 0" class="load-more-container">
-                <button 
-                    class="load-more-btn"
-                    @click="loadMoreReleases"
-                    :disabled="isLoadingMore"
-                >
-                    <span v-if="!isLoadingMore">
-                        {{ $t('download.buildHistory.loadMore') || '加载更多版本' }}
-                    </span>
-                    <span v-else>
-                        {{ $t('download.buildHistory.loading') || '加载中...' }}
-                    </span>
-                </button>
+            <!-- 分页导航 -->
+            <div v-if="!isLoading && pagination.totalPages > 1" class="pagination-nav">
+                <div class="pagination-buttons">
+                    <button 
+                        class="pagination-btn"
+                        :disabled="pagination.page === 1"
+                        @click="goToPage(1)"
+                        :class="{ disabled: pagination.page === 1 }"
+                    >
+                        {{ $t('download.buildHistory.firstPage') }}
+                    </button>
+                    <button 
+                        class="pagination-btn"
+                        :disabled="!pagination.hasPrev"
+                        @click="goToPage(pagination.page - 1)"
+                        :class="{ disabled: !pagination.hasPrev }"
+                    >
+                        {{ $t('download.buildHistory.prevPage') }}
+                    </button>
+                    
+                    <!-- 页码按钮 -->
+                    <div class="page-numbers">
+                        <button
+                            v-for="pageNum in getVisiblePages()"
+                            :key="pageNum"
+                            class="page-btn"
+                            :class="{ active: pageNum === pagination.page, ellipsis: pageNum === -1 }"
+                            @click="pageNum !== -1 ? goToPage(pageNum) : null"
+                            :disabled="pageNum === -1"
+                        >
+                            {{ pageNum === -1 ? '...' : pageNum }}
+                        </button>
+                    </div>
+                    
+                    <button 
+                        class="pagination-btn"
+                        :disabled="!pagination.hasNext"
+                        @click="goToPage(pagination.page + 1)"
+                        :class="{ disabled: !pagination.hasNext }"
+                    >
+                        {{ $t('download.buildHistory.nextPage') }}
+                    </button>
+                    <button 
+                        class="pagination-btn"
+                        :disabled="pagination.page === pagination.totalPages"
+                        @click="goToPage(pagination.totalPages)"
+                        :class="{ disabled: pagination.page === pagination.totalPages }"
+                    >
+                        {{ $t('download.buildHistory.lastPage') }}
+                    </button>
+                </div>
+                
+            </div>
+
+            <!-- 分页统计信息 -->
+            <div v-if="!isLoading && releases.length > 0" class="pagination-summary">
+                <p class="summary-text">
+                    {{ $t('download.buildHistory.showing') }} {{ pagination.page }} {{ $t('download.buildHistory.of') }} {{ pagination.totalPages }} {{ $t('download.buildHistory.pages') }} |
+                    {{ $t('download.buildHistory.total') }} {{ pagination.totalCount }} {{ $t('download.buildHistory.versions') }}
+                </p>
             </div>
         </div>
     </section>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch, defineEmits } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { mintProjectService } from '@/services/mint-project.service'
+import { api } from '@/main'
+import { GitHubApiService } from '@/services/github-api.service'
 import type { MintReleaseInfo } from '@/services/mint-project.service'
+
+// 定义 props 来接收选中的分支
+interface Props {
+  selectedBranch?: string
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  selectedBranch: 'main'
+})
+
+// 定义事件
+const emit = defineEmits(['latestBuildReady'])
 
 const { t } = useI18n()
 
-// 使用t函数避免未使用警告
-console.log('Build history loaded with translations:', t('download.buildHistory.title'))
+// 分页接口定义
+interface PaginationInfo {
+    page: number
+    perPage: number
+    totalCount: number
+    totalPages: number
+    hasNext: boolean
+    hasPrev: boolean
+}
 
 // 响应式数据
 const releases = ref<MintReleaseInfo[]>([])
+const allReleases = ref<MintReleaseInfo[]>([]) // 存储所有版本数据
 const isLoading = ref(true)
-const isLoadingMore = ref(false)
-const currentLimit = ref(5)
+const currentBranch = ref(props.selectedBranch)
 
-// 获取版本历史
-const fetchReleases = async (limit: number = 5) => {
-    try {
-        console.log('开始获取版本历史，限制数量:', limit)
-        const releaseList = await mintProjectService.getAllReleases(limit)
-        console.log('获取到的版本数据:', releaseList)
-        releases.value = releaseList
-        
-        if (releaseList.length === 0) {
-            console.warn('没有获取到任何版本数据')
-        }
-    } catch (error) {
-        console.error('获取版本历史失败:', error)
-        // 设置一些测试数据以便调试
-        releases.value = []
+// 分页状态
+const pagination = ref<PaginationInfo>({
+    page: 1,
+    perPage: 10, // 默认每页10条
+    totalCount: 0,
+    totalPages: 0,
+    hasNext: false,
+    hasPrev: false
+})
+
+// 自定义下拉菜单状态
+const isPerPageDropdownOpen = ref(false)
+const perPageOptions = [5, 10, 20, 50]
+
+// 切换下拉菜单
+const togglePerPageDropdown = () => {
+    isPerPageDropdownOpen.value = !isPerPageDropdownOpen.value
+}
+
+// 选择每页数量
+const selectPerPage = (value: number) => {
+    pagination.value.perPage = value
+    pagination.value.page = 1 // 重置到第一页
+    isPerPageDropdownOpen.value = false
+    applyPagination()
+}
+
+// 点击外部关闭下拉菜单
+const handleClickOutside = (event: MouseEvent) => {
+    const target = event.target as HTMLElement
+    if (!target.closest('.custom-select')) {
+        isPerPageDropdownOpen.value = false
     }
 }
 
-// 加载更多版本
-const loadMoreReleases = async () => {
-    if (isLoadingMore.value) return
+// GitHub API 服务实例
+const githubApi = new GitHubApiService()
+
+// 更新分页信息
+const updatePagination = (totalCount: number) => {
+    pagination.value.totalCount = totalCount
+    pagination.value.totalPages = Math.ceil(totalCount / pagination.value.perPage)
+    pagination.value.hasNext = pagination.value.page < pagination.value.totalPages
+    pagination.value.hasPrev = pagination.value.page > 1
+}
+
+// 应用分页到当前数据
+const applyPagination = () => {
+    const startIndex = (pagination.value.page - 1) * pagination.value.perPage
+    const endIndex = startIndex + pagination.value.perPage
+    releases.value = allReleases.value.slice(startIndex, endIndex)
+    updatePagination(allReleases.value.length)
+}
+
+// 跳转到指定页面
+const goToPage = (page: number) => {
+    if (page >= 1 && page <= pagination.value.totalPages && page !== pagination.value.page) {
+        pagination.value.page = page
+        applyPagination()
+        
+        // 滚动到顶部
+        const section = document.querySelector('.build-history-section')
+        if (section) {
+            section.scrollIntoView({ behavior: 'smooth' })
+        }
+    }
+}
+
+// 每页数量变化处理
+const onPerPageChange = () => {
+    pagination.value.page = 1 // 重置到第一页
+    applyPagination()
+}
+
+// 获取可见的页码
+const getVisiblePages = (): number[] => {
+    const current = pagination.value.page
+    const total = pagination.value.totalPages
+    const visible: number[] = []
+    
+    if (total <= 7) {
+        // 总页数少于等于7页，显示所有页码
+        for (let i = 1; i <= total; i++) {
+            visible.push(i)
+        }
+    } else {
+        // 总页数大于7页，显示部分页码
+        if (current <= 4) {
+            // 当前页在前4页
+            for (let i = 1; i <= 5; i++) {
+                visible.push(i)
+            }
+            visible.push(-1) // 省略号
+            visible.push(total)
+        } else if (current >= total - 3) {
+            // 当前页在后4页
+            visible.push(1)
+            visible.push(-1) // 省略号
+            for (let i = total - 4; i <= total; i++) {
+                visible.push(i)
+            }
+        } else {
+            // 当前页在中间
+            visible.push(1)
+            visible.push(-1) // 省略号
+            for (let i = current - 1; i <= current + 1; i++) {
+                visible.push(i)
+            }
+            visible.push(-1) // 省略号
+            visible.push(total)
+        }
+    }
+    
+    return visible
+}
+
+// 带超时和回退的API调用函数
+const fetchWithFallback = async (url: string, timeout: number = 10000): Promise<Response> => {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), timeout)
     
     try {
-        isLoadingMore.value = true
-        currentLimit.value += 5
-        await fetchReleases(currentLimit.value)
+        // 首先尝试使用代理API
+        const response = await fetch(url, {
+            signal: controller.signal,
+            headers: {
+                'Accept': 'application/vnd.github.v3+json',
+                'User-Agent': 'MenthaMC-Website'
+            }
+        })
+        
+        clearTimeout(timeoutId)
+        
+        if (response.ok) {
+            return response
+        }
+        
+        // 如果代理API失败，抛出错误以触发回退
+        throw new Error(`API响应失败: ${response.status}`)
+        
     } catch (error) {
-        console.error('加载更多版本失败:', error)
-    } finally {
-        isLoadingMore.value = false
+        clearTimeout(timeoutId)
+        
+        // 如果是超时或其他错误，尝试直接使用GitHub API
+        console.warn('代理API失败，尝试使用GitHub API:', error)
+        
+        // 提取GitHub API路径
+        const githubPath = url.replace(`${api}/github/`, '')
+        const directUrl = `https://api.github.com/${githubPath}`
+        
+        try {
+            const fallbackResponse = await fetch(directUrl, {
+                headers: {
+                    'Accept': 'application/vnd.github.v3+json',
+                    'User-Agent': 'MenthaMC-Website'
+                }
+            })
+            
+            if (fallbackResponse.ok) {
+                console.log('GitHub API回退成功')
+                return fallbackResponse
+            }
+            
+            throw new Error(`GitHub API也失败了: ${fallbackResponse.status}`)
+            
+        } catch (fallbackError) {
+            console.error('GitHub API回退也失败:', fallbackError)
+            throw error // 抛出原始错误
+        }
     }
 }
 
+// 获取最新构建信息
+const fetchLatestBuild = async (branch: string = 'main'): Promise<MintReleaseInfo | null> => {
+    try {
+        console.log('获取分支最新构建:', branch)
+        
+        if (branch === 'main' || branch === 'master') {
+            // 主分支：获取最新的GitHub Release
+            const response = await fetchWithFallback(`${api}/github/repos/MenthaMC/Mint/releases/latest`)
+            const release = await response.json()
+            
+            // 获取提交信息
+            let commitInfo = undefined
+            try {
+                const commitResponse = await fetchWithFallback(`${api}/github/repos/MenthaMC/Mint/commits/${release.target_commitish || 'main'}`)
+                const commitData = await commitResponse.json()
+                commitInfo = {
+                    sha: commitData.sha?.substring(0, 7) || 'unknown',
+                    shortMessage: commitData.commit?.message?.split('\n')[0] || release.name || `版本 ${release.tag_name}`,
+                    author: {
+                        name: commitData.commit?.author?.name || 'MenthaMC Team',
+                        email: commitData.commit?.author?.email || '',
+                        avatar_url: commitData.author?.avatar_url || 'https://github.com/MenthaMC.png'
+                    },
+                    committer: {
+                        name: commitData.commit?.committer?.name || 'MenthaMC Team',
+                        email: commitData.commit?.committer?.email || '',
+                        date: commitData.commit?.committer?.date || release.published_at
+                    },
+                    message: commitData.commit?.message || release.body || `版本 ${release.tag_name} 发布`,
+                    html_url: commitData.html_url || `https://github.com/MenthaMC/Mint/commit/${commitData.sha}`
+                }
+            } catch (commitError) {
+                console.warn(`获取提交信息失败:`, commitError)
+            }
+            
+            // 查找JAR文件
+            const jarAsset = release.assets?.find((asset: any) => 
+                asset.name.toLowerCase().endsWith('.jar') && 
+                !asset.name.toLowerCase().includes('sources') && 
+                !asset.name.toLowerCase().includes('javadoc')
+            )
+            
+            // 计算文件大小
+            const totalSize = release.assets?.reduce((sum: number, asset: any) => sum + (asset.size || 0), 0) || 0
+            const fileSize = totalSize > 0 ? `${(totalSize / 1024 / 1024).toFixed(1)} MB` : '大小未知'
+            
+            const latestRelease: MintReleaseInfo = {
+                version: release.tag_name?.replace(/^v/, '') || '最新版本',
+                buildNumber: '1',
+                releaseDate: new Date(release.published_at || release.created_at).toLocaleDateString('zh-CN'),
+                fileSize,
+                downloadUrl: jarAsset?.browser_download_url || release.assets?.[0]?.browser_download_url || release.zipball_url,
+                changelogUrl: release.html_url,
+                assets: release.assets?.map((asset: any) => ({
+                    name: asset.name,
+                    size: asset.size || 0,
+                    downloadCount: asset.download_count || 0,
+                    browserDownloadUrl: asset.browser_download_url
+                })) || [],
+                commitInfo
+            }
+            
+            return latestRelease
+        } else {
+            // 非主分支：尝试查找该分支对应的Release，如果没有则获取最新提交
+            try {
+                // 首先尝试查找分支对应的Release
+                const releasesResponse = await fetchWithFallback(`${api}/github/repos/MenthaMC/Mint/releases?per_page=50`)
+                const releases = await releasesResponse.json()
+                
+                // 查找目标分支的Release
+                const branchRelease = releases.find((release: any) => 
+                    release.target_commitish === branch || 
+                    release.tag_name.includes(branch) ||
+                    release.name?.includes(branch)
+                )
+                
+                if (branchRelease) {
+                    console.log(`找到分支 ${branch} 的Release:`, branchRelease.tag_name)
+                    
+                    // 查找JAR文件
+                    const jarAsset = branchRelease.assets?.find((asset: any) => 
+                        asset.name.toLowerCase().endsWith('.jar') && 
+                        !asset.name.toLowerCase().includes('sources') && 
+                        !asset.name.toLowerCase().includes('javadoc')
+                    )
+                    
+                    // 获取提交信息
+                    let commitInfo = undefined
+                    try {
+                        const commitResponse = await fetchWithFallback(`${api}/github/repos/MenthaMC/Mint/commits/${branchRelease.target_commitish || branch}`)
+                        const commitData = await commitResponse.json()
+                        commitInfo = {
+                            sha: commitData.sha?.substring(0, 7) || 'unknown',
+                            shortMessage: commitData.commit?.message?.split('\n')[0] || branchRelease.name || `版本 ${branchRelease.tag_name}`,
+                            author: {
+                                name: commitData.commit?.author?.name || 'MenthaMC Team',
+                                email: commitData.commit?.author?.email || '',
+                                avatar_url: commitData.author?.avatar_url || 'https://github.com/MenthaMC.png'
+                            },
+                            committer: {
+                                name: commitData.commit?.committer?.name || 'MenthaMC Team',
+                                email: commitData.commit?.committer?.email || '',
+                                date: commitData.commit?.committer?.date || branchRelease.published_at
+                            },
+                            message: commitData.commit?.message || branchRelease.body || `版本 ${branchRelease.tag_name} 发布`,
+                            html_url: commitData.html_url || `https://github.com/MenthaMC/Mint/commit/${commitData.sha}`
+                        }
+                    } catch (commitError) {
+                        console.warn(`获取分支Release提交信息失败:`, commitError)
+                    }
+                    
+                    const totalSize = branchRelease.assets?.reduce((sum: number, asset: any) => sum + (asset.size || 0), 0) || 0
+                    const fileSize = totalSize > 0 ? `${(totalSize / 1024 / 1024).toFixed(1)} MB` : '大小未知'
+                    
+                    return {
+                        version: branchRelease.tag_name?.replace(/^v/, '') || `${branch}-release`,
+                        buildNumber: '1',
+                        releaseDate: new Date(branchRelease.published_at || branchRelease.created_at).toLocaleDateString('zh-CN'),
+                        fileSize,
+                        downloadUrl: jarAsset?.browser_download_url || branchRelease.assets?.[0]?.browser_download_url || branchRelease.zipball_url,
+                        changelogUrl: branchRelease.html_url,
+                        assets: branchRelease.assets?.map((asset: any) => ({
+                            name: asset.name,
+                            size: asset.size || 0,
+                            downloadCount: asset.download_count || 0,
+                            browserDownloadUrl: asset.browser_download_url
+                        })) || [],
+                        commitInfo
+                    }
+                }
+            } catch (releaseError) {
+                console.warn(`查找分支 ${branch} 的Release失败，回退到提交模式:`, releaseError)
+            }
+            
+            // 如果没有找到Release，获取分支的最新提交
+            const commitsResponse = await fetchWithFallback(`${api}/github/repos/MenthaMC/Mint/commits?sha=${branch}&per_page=1`)
+            const commits = await commitsResponse.json()
+            
+            if (commits && commits.length > 0) {
+                const commit = commits[0]
+                const commitDate = new Date(commit.commit.committer.date)
+                const shortSha = commit.sha.substring(0, 7)
+                
+                const latestBuild: MintReleaseInfo = {
+                    version: `${branch}-${shortSha}`,
+                    buildNumber: '1',
+                    releaseDate: commitDate.toLocaleDateString('zh-CN'),
+                    fileSize: '约 15-20 MB',
+                    downloadUrl: `https://github.com/MenthaMC/Mint/archive/${commit.sha}.zip`,
+                    changelogUrl: commit.html_url,
+                    assets: [{
+                        name: `mint-${branch}-${shortSha}.zip`,
+                        size: 0,
+                        downloadCount: 0,
+                        browserDownloadUrl: `https://github.com/MenthaMC/Mint/archive/${commit.sha}.zip`
+                    }],
+                    commitInfo: {
+                        sha: shortSha,
+                        shortMessage: commit.commit.message.split('\n')[0],
+                        author: {
+                            name: commit.commit.author.name,
+                            email: commit.commit.author.email,
+                            avatar_url: commit.author?.avatar_url || 'https://github.com/MenthaMC.png'
+                        },
+                        committer: {
+                            name: commit.commit.committer.name,
+                            email: commit.commit.committer.email,
+                            date: commit.commit.committer.date
+                        },
+                        message: commit.commit.message,
+                        html_url: commit.html_url
+                    }
+                }
+                
+                return latestBuild
+            }
+        }
+        
+        return null
+    } catch (error) {
+        console.error('获取最新构建失败:', error)
+        return null
+    }
+}
+
+// 获取版本历史
+const fetchReleases = async (limit: number = 100, branch: string = 'main') => {
+    try {
+        console.log('开始获取版本历史，分支:', branch, '限制数量:', limit)
+        
+        if (branch === 'main' || branch === 'master') {
+            // 主分支：获取所有GitHub Releases
+            const response = await fetchWithFallback(`${api}/github/repos/MenthaMC/Mint/releases?per_page=100`)
+            const githubReleases = await response.json()
+            
+            if (githubReleases && githubReleases.length > 0) {
+                // 转换GitHub Release数据为我们的格式
+                const releaseList: MintReleaseInfo[] = await Promise.all(
+                    githubReleases.map(async (release: any, index: number) => {
+                        // 获取提交信息
+                        let commitInfo = undefined
+                        try {
+                            const commitResponse = await fetchWithFallback(`${api}/github/repos/MenthaMC/Mint/commits/${release.target_commitish || 'main'}`)
+                            const commitData = await commitResponse.json()
+                            commitInfo = {
+                                sha: commitData.sha?.substring(0, 7) || 'unknown',
+                                shortMessage: commitData.commit?.message?.split('\n')[0] || release.name || `版本 ${release.tag_name}`,
+                                author: {
+                                    name: commitData.commit?.author?.name || 'MenthaMC Team',
+                                    email: commitData.commit?.author?.email || '',
+                                    avatar_url: commitData.author?.avatar_url || 'https://github.com/MenthaMC.png'
+                                },
+                                committer: {
+                                    name: commitData.commit?.committer?.name || 'MenthaMC Team',
+                                    email: commitData.commit?.committer?.email || '',
+                                    date: commitData.commit?.committer?.date || release.published_at
+                                },
+                                message: commitData.commit?.message || release.body || `版本 ${release.tag_name} 发布`,
+                                html_url: commitData.html_url || `https://github.com/MenthaMC/Mint/commit/${commitData.sha}`
+                            }
+                        } catch (commitError) {
+                            console.warn(`获取提交信息失败:`, commitError)
+                        }
+                        
+                        // 计算文件大小
+                        const totalSize = release.assets?.reduce((sum: number, asset: any) => sum + (asset.size || 0), 0) || 0
+                        const fileSize = totalSize > 0 ? `${(totalSize / 1024 / 1024).toFixed(1)} MB` : '大小未知'
+                        
+                        return {
+                            version: release.tag_name?.replace(/^v/, '') || `未知版本-${index + 1}`,
+                            buildNumber: String(githubReleases.length - index),
+                            releaseDate: new Date(release.published_at || release.created_at).toLocaleDateString('zh-CN'),
+                            fileSize,
+                            downloadUrl: release.assets?.[0]?.browser_download_url || release.zipball_url,
+                            changelogUrl: release.html_url,
+                            assets: release.assets?.map((asset: any) => ({
+                                name: asset.name,
+                                size: asset.size || 0,
+                                downloadCount: asset.download_count || 0,
+                                browserDownloadUrl: asset.browser_download_url
+                            })) || [],
+                            commitInfo
+                        }
+                    })
+                )
+                
+                allReleases.value = releaseList
+                console.log('获取到的版本数据:', allReleases.value)
+            } else {
+                console.warn('没有获取到任何发布版本，创建模拟数据')
+                allReleases.value = createMockReleases(branch, limit)
+            }
+        } else {
+            // 非主分支：获取分支的所有提交历史作为构建信息
+            const commitsResponse = await fetchWithFallback(`${api}/github/repos/MenthaMC/Mint/commits?sha=${branch}&per_page=100`)
+            const commits = await commitsResponse.json()
+            
+            if (commits && commits.length > 0) {
+                // 将提交转换为构建信息格式
+                const buildList: MintReleaseInfo[] = commits.map((commit: any, index: number) => {
+                    const commitDate = new Date(commit.commit.committer.date)
+                    const shortSha = commit.sha.substring(0, 7)
+                    
+                    return {
+                        version: `${branch}-${shortSha}`,
+                        buildNumber: String(commits.length - index),
+                        releaseDate: commitDate.toLocaleDateString('zh-CN'),
+                        fileSize: '0 MB',
+                        downloadUrl: `https://github.com/MenthaMC/Mint/archive/${commit.sha}.zip`,
+                        changelogUrl: commit.html_url,
+                        assets: [{
+                            name: `mint-${branch}-${shortSha}.zip`,
+                            size: 0,
+                            downloadCount: 0,
+                            browserDownloadUrl: `https://github.com/MenthaMC/Mint/archive/${commit.sha}.zip`
+                        }],
+                        commitInfo: {
+                            sha: shortSha,
+                            shortMessage: commit.commit.message.split('\n')[0],
+                            author: {
+                                name: commit.commit.author.name,
+                                email: commit.commit.author.email,
+                                avatar_url: commit.author?.avatar_url || 'https://github.com/MenthaMC.png'
+                            },
+                            committer: {
+                                name: commit.commit.committer.name,
+                                email: commit.commit.committer.email,
+                                date: commit.commit.committer.date
+                            },
+                            message: commit.commit.message,
+                            html_url: commit.html_url
+                        }
+                    }
+                })
+                
+                allReleases.value = buildList
+                console.log(`获取到分支 ${branch} 的构建数据:`, allReleases.value)
+            } else {
+                console.warn(`分支 ${branch} 没有提交记录，创建模拟数据`)
+                allReleases.value = createMockReleases(branch, limit)
+            }
+        }
+        
+    } catch (error) {
+        console.error('获取版本历史失败:', error)
+        allReleases.value = createMockReleases(branch, limit)
+    } finally {
+        // 应用分页
+        applyPagination()
+    }
+}
+
+// 创建模拟发布数据
+const createMockReleases = (branch: string, limit: number): MintReleaseInfo[] => {
+    const mockReleases: MintReleaseInfo[] = []
+    const now = new Date()
+    
+    for (let i = 0; i < Math.min(limit, 3); i++) {
+        const releaseDate = new Date(now.getTime() - i * 7 * 24 * 60 * 60 * 1000) // 每周一个版本
+        const version = branch === 'main' ? `1.${3 - i}.0` : `${branch}-${3 - i}`
+        
+        mockReleases.push({
+            version,
+            buildNumber: String(3 - i),
+            releaseDate: releaseDate.toLocaleDateString('zh-CN'),
+            fileSize: '0 MB',
+            downloadUrl: `https://github.com/MenthaMC/Mint/releases/download/v${version}/mint-${version}.jar`,
+            changelogUrl: `https://github.com/MenthaMC/Mint/releases/tag/v${version}`,
+            assets: [{
+                name: `mint-${version}.jar`,
+                size: 16777216, // 16MB
+                downloadCount: Math.floor(Math.random() * 1000) + 100,
+                browserDownloadUrl: `https://github.com/MenthaMC/Mint/releases/download/v${version}/mint-${version}.jar`
+            }],
+            commitInfo: {
+                sha: Math.random().toString(36).substring(2, 9),
+                shortMessage: i === 0 ? '修复重要bug并优化性能' : i === 1 ? '添加新功能和改进' : '初始版本发布',
+                author: {
+                    name: 'MenthaMC Team',
+                    email: 'team@menthamc.com',
+                    avatar_url: 'https://github.com/MenthaMC.png'
+                },
+                committer: {
+                    name: 'MenthaMC Team',
+                    email: 'team@menthamc.com',
+                    date: releaseDate.toISOString()
+                },
+                message: i === 0 ? '修复重要bug并优化性能\n\n- 修复内存泄漏问题\n- 优化启动速度\n- 改进错误处理' : 
+                        i === 1 ? '添加新功能和改进\n\n- 新增配置选项\n- 改进用户界面\n- 修复已知问题' : 
+                        '初始版本发布\n\n- 基础功能实现\n- 核心架构搭建',
+                html_url: `https://github.com/MenthaMC/Mint/commit/${Math.random().toString(36).substring(2, 9)}`
+            }
+        })
+    }
+    
+    return mockReleases
+}
+
+// 监听分支变化
+watch(() => props.selectedBranch, (newBranch) => {
+    if (newBranch && newBranch !== currentBranch.value) {
+        currentBranch.value = newBranch
+        pagination.value.page = 1 // 重置到第一页
+        isLoading.value = true
+        fetchReleases(100, newBranch).finally(() => {
+            isLoading.value = false
+        })
+    }
+})
+
 // 下载版本
-const downloadRelease = (release: MintReleaseInfo) => {
-    if (release.downloadUrl) {
-        const link = document.createElement('a')
-        link.href = release.downloadUrl
-        link.download = `mint-${release.version}-${release.buildNumber}.jar`
-        link.style.display = 'none'
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
+const downloadRelease = async (release: MintReleaseInfo) => {
+    try {
+        // 优先使用release中的下载链接
+        if (release.downloadUrl) {
+            // 检查是否是JAR文件
+            if (release.downloadUrl.toLowerCase().endsWith('.jar')) {
+                const link = document.createElement('a')
+                link.href = release.downloadUrl
+                link.download = `mint-${release.version}-${release.buildNumber}.jar`
+                link.style.display = 'none'
+                document.body.appendChild(link)
+                link.click()
+                document.body.removeChild(link)
+                return
+            }
+        }
+        
+        // 如果不是JAR文件，尝试获取当前分支的最新JAR
+        const branchJarUrl = await getBranchLatestJar(currentBranch.value)
+        if (branchJarUrl) {
+            const link = document.createElement('a')
+            link.href = branchJarUrl
+            link.download = `mint-${release.version}.jar`
+            link.style.display = 'none'
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+            return
+        }
+        
+        // 最后回退到原始下载链接
+        if (release.downloadUrl) {
+            const link = document.createElement('a')
+            link.href = release.downloadUrl
+            link.download = `mint-${release.version}-${release.buildNumber}.jar`
+            link.style.display = 'none'
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+        }
+    } catch (error) {
+        console.error('下载失败:', error)
+        // 错误回退
+        if (release.downloadUrl) {
+            const link = document.createElement('a')
+            link.href = release.downloadUrl
+            link.download = `mint-${release.version}-${release.buildNumber}.jar`
+            link.style.display = 'none'
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+        }
     }
 }
 
@@ -255,12 +910,91 @@ const formatCommitDate = (dateString: string): string => {
     }
 }
 
+// 获取并发送最新构建信息
+const getAndEmitLatestBuild = async (branch: string) => {
+    try {
+        const latestBuild = await fetchLatestBuild(branch)
+        if (latestBuild) {
+            console.log(`获取到分支 ${branch} 的最新构建:`, latestBuild)
+            emit('latestBuildReady', latestBuild)
+            return latestBuild
+        }
+    } catch (error) {
+        console.error(`获取分支 ${branch} 的最新构建失败:`, error)
+    }
+    return null
+}
+
+// 获取分支对应的最新JAR下载链接
+const getBranchLatestJar = async (branch: string): Promise<string | null> => {
+    try {
+        console.log(`获取分支 ${branch} 的最新JAR...`)
+        
+        if (branch === 'main' || branch === 'master') {
+            // 主分支：获取最新Release的JAR
+            const response = await fetchWithFallback(`${api}/github/repos/MenthaMC/Mint/releases/latest`)
+            const release = await response.json()
+            
+            const jarAsset = release.assets?.find((asset: any) => 
+                asset.name.toLowerCase().endsWith('.jar') && 
+                !asset.name.toLowerCase().includes('sources') && 
+                !asset.name.toLowerCase().includes('javadoc')
+            )
+            
+            if (jarAsset) {
+                return jarAsset.browser_download_url
+            }
+        } else {
+            // 非主分支：查找分支对应的Release
+            const releasesResponse = await fetchWithFallback(`${api}/github/repos/MenthaMC/Mint/releases?per_page=50`)
+            const releases = await releasesResponse.json()
+            
+            const branchRelease = releases.find((release: any) => 
+                release.target_commitish === branch || 
+                release.tag_name.includes(branch) ||
+                release.name?.includes(branch)
+            )
+            
+            if (branchRelease) {
+                const jarAsset = branchRelease.assets?.find((asset: any) => 
+                    asset.name.toLowerCase().endsWith('.jar') && 
+                    !asset.name.toLowerCase().includes('sources') && 
+                    !asset.name.toLowerCase().includes('javadoc')
+                )
+                
+                if (jarAsset) {
+                    return jarAsset.browser_download_url
+                }
+            }
+        }
+        
+        return null
+    } catch (error) {
+        console.error(`获取分支 ${branch} 的JAR失败:`, error)
+        return null
+    }
+}
+
 onMounted(async () => {
     try {
-        await fetchReleases(currentLimit.value)
+        // 获取版本历史
+        await fetchReleases(100, currentBranch.value)
+        
+        // 获取并发送最新构建信息
+        await getAndEmitLatestBuild(currentBranch.value)
+        
+        // 添加点击外部关闭下拉菜单的事件监听
+        document.addEventListener('click', handleClickOutside)
     } finally {
         isLoading.value = false
     }
+})
+
+// 组件卸载时移除事件监听器
+import { onUnmounted } from 'vue'
+
+onUnmounted(() => {
+    document.removeEventListener('click', handleClickOutside)
 })
 </script>
 
@@ -298,6 +1032,116 @@ onMounted(async () => {
     font-size: 1rem;
     color: #94a3b8;
     margin: 0;
+}
+
+/* 分页控制栏 */
+.pagination-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    padding: 16px 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+}
+
+.per-page-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.per-page-selector label {
+    color: #94a3b8;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* 自定义下拉菜单 */
+.custom-select {
+    position: relative;
+    min-width: 80px;
+}
+
+.select-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    color: #ffffff;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 80px;
+    font-family: inherit;
+}
+
+.select-trigger:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.custom-select.open .select-trigger {
+    border-color: #10b981;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+.select-arrow {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.2s ease;
+}
+
+.select-arrow.rotated {
+    transform: rotate(180deg);
+}
+
+.select-options {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: rgba(30, 41, 59, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    backdrop-filter: blur(20px);
+    z-index: 1000;
+    margin-top: 4px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.select-option {
+    padding: 8px 12px;
+    color: #ffffff;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.select-option:last-child {
+    border-bottom: none;
+}
+
+.select-option:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.select-option.selected {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+}
+
+.pagination-info {
+    color: #94a3b8;
+    font-size: 14px;
+    font-weight: 500;
 }
 
 /* 加载状态 */
@@ -643,40 +1487,126 @@ onMounted(async () => {
     transform: translateY(-1px);
 }
 
-/* 加载更多 */
-.load-more-container {
-    text-align: center;
+/* 分页导航 */
+.pagination-nav {
     margin-top: 40px;
+    padding: 24px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
 }
 
-.load-more-btn {
-    padding: 12px 24px;
+.pagination-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.pagination-btn {
+    padding: 8px 16px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    color: #94a3b8;
+    border-radius: 8px;
+    color: #ffffff;
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.2s ease;
+    min-width: 60px;
 }
 
-.load-more-btn:hover:not(:disabled) {
+.pagination-btn:hover:not(.disabled) {
     background: rgba(255, 255, 255, 0.1);
     border-color: rgba(255, 255, 255, 0.2);
-    color: #ffffff;
-    transform: translateY(-2px);
+    transform: translateY(-1px);
 }
 
-.load-more-btn:disabled {
+.pagination-btn.disabled {
     opacity: 0.5;
     cursor: not-allowed;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.page-numbers {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin: 0 8px;
+}
+
+.page-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.page-btn:hover:not(.ellipsis) {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.page-btn.active {
+    background: #10b981;
+    border-color: #10b981;
+    color: #ffffff;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+}
+
+.page-btn.ellipsis {
+    cursor: default;
+    opacity: 0.6;
+}
+
+
+/* 分页统计信息 */
+.pagination-summary {
+    text-align: center;
+    margin-top: 24px;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+}
+
+.summary-text {
+    color: #94a3b8;
+    font-size: 14px;
+    font-weight: 500;
+    margin: 0;
 }
 
 /* 响应式设计 */
 @media (max-width: 768px) {
     .container {
         padding: 0 16px;
+    }
+    
+    .pagination-controls {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+    }
+    
+    .pagination-buttons {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .page-numbers {
+        margin: 0;
     }
     
     .timeline-item {

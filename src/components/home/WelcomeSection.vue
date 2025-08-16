@@ -1,32 +1,35 @@
 <template>
-    <section class="welcome-section">
-        <div class="welcome-background">
-            <div class="gradient-orb orb-1"></div>
-            <div class="gradient-orb orb-2"></div>
-            <div class="gradient-orb orb-3"></div>
+    <section class="welcome-section" data-scroll-animate data-enter-animation="fadeInUp">
+        <!-- 浮动粒子容器 -->
+        <div class="floating-particles-container"></div>
+        
+        <div class="welcome-background" data-gradient-animation>
+            <div class="gradient-orb orb-1" data-parallax="0.3" data-mouse-follow></div>
+            <div class="gradient-orb orb-2" data-parallax="0.5" data-mouse-follow></div>
+            <div class="gradient-orb orb-3" data-parallax="0.2" data-mouse-follow></div>
         </div>
 
         <div class="welcome-content">
-            <div class="welcome-badge"></div>
+            <div class="welcome-badge shimmer-animation" data-enter-animation="zoomIn"></div>
 
-            <h1 class="welcome-title">
-                <span class="title-line">{{ $t('home.welcome.title.line1') }}</span>
-                <span class="title-highlight">{{ $t('home.welcome.title.highlight') }}</span>
-                <span class="title-line">{{ $t('home.welcome.title.line2') }}</span>
+            <h1 class="welcome-title text-reveal" data-scroll-animate data-enter-animation="fadeInUp">
+                <span class="title-line" data-scroll-animate data-enter-animation="fadeInLeft">{{ $t('home.welcome.title.line1') }}</span>
+                <span class="title-highlight pulse-animation" data-scroll-animate data-enter-animation="zoomIn">{{ $t('home.welcome.title.highlight') }}</span>
+                <span class="title-line" data-scroll-animate data-enter-animation="fadeInRight">{{ $t('home.welcome.title.line2') }}</span>
             </h1>
 
-            <p class="welcome-description">
+            <p class="welcome-description" data-scroll-animate data-enter-animation="fadeInUp" data-parallax="0.1">
                 {{ $t('home.welcome.description') }}
             </p>
 
-            <div class="welcome-actions">
-                <button class="action-btn primary" @click="handleGetStarted">
+            <div class="welcome-actions stagger-animation" data-scroll-animate data-enter-animation="slideInUp">
+                <button class="action-btn primary animated-button interactive-hover" @click="handleGetStarted" data-hover-animate data-click-animate>
                     <span class="btn-icon">⚡</span>
                     <span>{{ $t('home.welcome.actions.getStarted') }}</span>
                     <span class="btn-arrow">→</span>
                 </button>
 
-                <button class="action-btn secondary" @click="handleViewDocs">
+                <button class="action-btn secondary animated-button interactive-hover" @click="handleViewDocs" data-hover-animate data-click-animate>
                     <span class="btn-icon">📚</span>
                     <span>{{ $t('home.welcome.actions.viewDocs') }}</span>
                 </button>

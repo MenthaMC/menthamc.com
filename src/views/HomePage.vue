@@ -1,13 +1,13 @@
 <template>
-    <main class="home-page">
+    <main class="home-page" data-animate>
         <!-- 欢迎区域 -->
-        <WelcomeSection />
+        <WelcomeSection data-scroll-animate />
 
         <!-- 特性展示区域 -->
-        <FeaturesShowcase />
+        <FeaturesShowcase data-scroll-animate />
 
         <!-- 项目展示区域 -->
-        <ProjectsShowcase />
+        <ProjectsShowcase data-scroll-animate />
     </main>
 </template>
 
