@@ -138,6 +138,8 @@ import { useI18n } from 'vue-i18n'
 import { GitHubApiService } from '@/services/github-api.service'
 import { api } from '@/main'
 import type { MintReleaseInfo } from '@/services/mint-project.service'
+import { cacheFirstRequest } from '@/services/cache-first-request.service'
+import { globalCache } from '@/services/cache.service'
 
 const { t } = useI18n()
 
@@ -156,75 +158,134 @@ const emit = defineEmits<{
 // GitHub API 服务实例
 const githubApi = new GitHubApiService()
 
-// 带超时和回退的API调用函数
+// 带缓存、超时和回退的API调用函数
 const fetchWithFallback = async (url: string, timeout: number = 10000): Promise<Response> => {
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), timeout)
+    // 生成缓存键
+    const cacheKey = `api:${url}`
     
     try {
-        // 首先尝试使用代理API
-        const response = await fetch(url, {
-            signal: controller.signal,
+        // 首先尝试从缓存获取数据
+        const cachedResponse = await cacheFirstRequest.request<any>(cacheKey, {
+            url,
             headers: {
                 'Accept': 'application/vnd.github.v3+json',
                 'User-Agent': 'MenthaMC-Website'
-            }
+            },
+            cacheTtl: 5 * 60 * 1000, // 5分钟缓存
+            skipCache: false
         })
         
-        clearTimeout(timeoutId)
-        
-        if (response.ok) {
-            console.log('代理API调用成功:', url)
-            return response
+        // 如果从缓存获取成功，返回缓存数据
+        if (cachedResponse.data && !cachedResponse.error) {
+            console.log('缓存命中:', url)
+            return new Response(JSON.stringify(cachedResponse.data), {
+                status: 200,
+                headers: { 'Content-Type': 'application/json' }
+            })
         }
         
-        // 如果代理API失败，抛出错误以触发回退
-        throw new Error(`代理API响应失败: ${response.status}`)
-        
-    } catch (error) {
-        clearTimeout(timeoutId)
-        
-        // 如果是超时或其他错误，尝试直接使用GitHub API
-        console.warn('代理API失败，尝试使用GitHub API回退:', error)
-        
-        // 提取GitHub API路径
-        const githubPath = url.replace(`${api}/github/`, '')
-        const directUrl = `https://api.github.com/${githubPath}`
+        // 如果缓存未命中或已过期，尝试使用代理API
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), timeout)
         
         try {
-            const fallbackController = new AbortController()
-            const fallbackTimeoutId = setTimeout(() => fallbackController.abort(), timeout)
-            
-            const fallbackResponse = await fetch(directUrl, {
-                signal: fallbackController.signal,
+            // 尝试使用代理API
+            const response = await fetch(url, {
+                signal: controller.signal,
                 headers: {
                     'Accept': 'application/vnd.github.v3+json',
                     'User-Agent': 'MenthaMC-Website'
                 }
             })
             
-            clearTimeout(fallbackTimeoutId)
+            clearTimeout(timeoutId)
             
-            if (fallbackResponse.ok) {
-                console.log('GitHub API回退成功:', directUrl)
-                return fallbackResponse
+            if (response.ok) {
+                console.log('代理API调用成功:', url)
+                
+                // 获取响应数据并更新缓存
+                const responseData = await response.json()
+                // 手动更新缓存
+                globalCache.set(cacheKey, responseData, 5 * 60 * 1000)
+                
+                // 返回新的响应对象
+                return new Response(JSON.stringify(responseData), {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json' }
+                })
             }
             
-            throw new Error(`GitHub API也失败了: ${fallbackResponse.status}`)
+            // 如果代理API失败，抛出错误以触发回退
+            throw new Error(`代理API响应失败: ${response.status}`)
             
-        } catch (fallbackError) {
-            console.error('GitHub API回退也失败:', fallbackError)
+        } catch (error) {
+            clearTimeout(timeoutId)
             
-            // 如果所有API都失败，返回模拟数据以保证基本功能
-            console.warn('所有API都失败，使用模拟数据')
-            return new Response(JSON.stringify({
-                default_branch: 'main',
-                message: 'API调用失败，使用默认数据'
-            }), {
-                status: 200,
-                headers: { 'Content-Type': 'application/json' }
-            })
+            // 如果是超时或其他错误，尝试直接使用GitHub API
+            console.warn('代理API失败，尝试使用GitHub API回退:', error)
+            
+            // 提取GitHub API路径
+            const githubPath = url.replace(`${api}/github/`, '')
+            const directUrl = `https://api.github.com/${githubPath}`
+            
+            try {
+                const fallbackController = new AbortController()
+                const fallbackTimeoutId = setTimeout(() => fallbackController.abort(), timeout)
+                
+                const fallbackResponse = await fetch(directUrl, {
+                    signal: fallbackController.signal,
+                    headers: {
+                        'Accept': 'application/vnd.github.v3+json',
+                        'User-Agent': 'MenthaMC-Website'
+                    }
+                })
+                
+                clearTimeout(fallbackTimeoutId)
+                
+                if (fallbackResponse.ok) {
+                    console.log('GitHub API回退成功:', directUrl)
+                    
+                    // 获取响应数据并更新缓存
+                    const responseData = await fallbackResponse.json()
+                    // 手动更新缓存
+                    globalCache.set(cacheKey, responseData, 5 * 60 * 1000)
+                    
+                    // 返回新的响应对象
+                    return new Response(JSON.stringify(responseData), {
+                        status: 200,
+                        headers: { 'Content-Type': 'application/json' }
+                    })
+                }
+                
+                throw new Error(`GitHub API也失败了: ${fallbackResponse.status}`)
+                
+            } catch (fallbackError) {
+                console.error('GitHub API回退也失败:', fallbackError)
+                
+                // 如果所有API都失败，返回模拟数据以保证基本功能
+                console.warn('所有API都失败，使用模拟数据')
+                const mockData = {
+                    default_branch: 'main',
+                    message: 'API调用失败，使用默认数据'
+                }
+                
+                return new Response(JSON.stringify(mockData), {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json' }
+                })
+            }
         }
+    } catch (error) {
+        console.error('缓存请求失败:', error)
+        
+        // 如果缓存请求失败，返回模拟数据
+        return new Response(JSON.stringify({
+            default_branch: 'main',
+            message: 'API调用失败，使用默认数据'
+        }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' }
+        })
     }
 }
 

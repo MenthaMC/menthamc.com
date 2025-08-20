@@ -252,7 +252,7 @@ export default {
                     title: 'Ultimate Performance',
                     description:
                         'Multi-threaded architecture based on Folia, providing excellent performance for large servers',
-                    highlight: '40% Performance Boost',
+                    highlight: '10-15% Performance Boost',
                 },
                 stability: {
                     title: 'Stable & Reliable',
@@ -264,7 +264,7 @@ export default {
                     title: 'Highly Configurable',
                     description:
                         'Rich configuration options to customize server behavior according to your needs',
-                    highlight: '100+ Config Options',
+                    highlight: '20+ Config Options',
                 },
                 compatible: {
                     title: 'Vanilla Compatible',

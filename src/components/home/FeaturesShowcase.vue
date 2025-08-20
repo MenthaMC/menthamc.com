@@ -31,7 +31,7 @@
                 <div class="comparison-chart">
                     <div class="chart-item" data-scroll-animate>
                         <div class="chart-bar">
-                            <div class="bar-fill vanilla" style="height: 40%"></div>
+                            <div class="bar-fill vanilla" style="height: 30%"></div>
                         </div>
                         <span class="chart-label">{{
                             $t('home.features.comparison.vanilla')
@@ -39,7 +39,7 @@
                     </div>
                     <div class="chart-item" data-scroll-animate>
                         <div class="chart-bar">
-                            <div class="bar-fill paper" style="height: 65%"></div>
+                            <div class="bar-fill paper" style="height: 50%"></div>
                         </div>
                         <span class="chart-label">Paper</span>
                     </div>
@@ -51,7 +51,7 @@
                     </div>
                     <div class="chart-item highlight" data-scroll-animate>
                         <div class="chart-bar">
-                            <div class="bar-fill mint" style="height: 95%"></div>
+                            <div class="bar-fill mint" style="height: 90%"></div>
                         </div>
                         <span class="chart-label">Mint</span>
                         <div class="performance-badge pulse-animation">
@@ -86,11 +86,6 @@ const features = [
     {
         key: 'configurable',
         icon: '🔧',
-        highlight: true,
-    },
-    {
-        key: 'compatible',
-        icon: '🌟',
         highlight: true,
     },
     {

@@ -178,7 +178,7 @@ export default {
                 performance: {
                     title: '极致性能',
                     description: '基于 Folia 的多线程架构，为大型服务器提供卓越的性能表现',
-                    highlight: '性能提升 40%',
+                    highlight: '性能提升 10-15%',
                 },
                 stability: {
                     title: '稳定可靠',
@@ -188,7 +188,7 @@ export default {
                 configurable: {
                     title: '高度可配置',
                     description: '丰富的配置选项，让你可以根据需求自定义服务器行为',
-                    highlight: '100+ 配置项',
+                    highlight: '20+ 配置项',
                 },
                 compatible: {
                     title: '原版兼容',
