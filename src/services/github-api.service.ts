@@ -82,6 +82,169 @@ export class GitHubApiService {
     }
   }
 
+  // 多个备用API端点配置
+  private readonly API_ENDPOINTS = [
+    `${api}/github`, // 主要代理API
+    'https://api.github.com', // GitHub官方API
+    'https://github.com/api/v3', // GitHub备用端点
+    // 可以添加更多备用API端点
+  ];
+
+  // 带多个备用API的请求方法
+  private async fetchWithMultipleFallbacks(path: string, timeout: number = 8000): Promise<Response> {
+    const errors: Error[] = [];
+    
+    for (let i = 0; i < this.API_ENDPOINTS.length; i++) {
+      const baseUrl = this.API_ENDPOINTS[i];
+      const fullUrl = path.startsWith('http') ? path : `${baseUrl}/${path.replace(/^\//, '')}`;
+      
+      try {
+        console.log(`尝试API端点 ${i + 1}/${this.API_ENDPOINTS.length}: ${baseUrl}`);
+        
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
+        
+        const response = await fetch(fullUrl, {
+          signal: controller.signal,
+          headers: {
+            'Accept': 'application/vnd.github.v3+json',
+            'User-Agent': 'MenthaMC-Website'
+          }
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (response.ok) {
+          console.log(`API端点 ${i + 1} 调用成功: ${baseUrl}`);
+          return response;
+        }
+        
+        const error = new Error(`API端点 ${i + 1} 响应失败: ${response.status} ${response.statusText}`);
+        errors.push(error);
+        console.warn(error.message);
+        
+        // 如果是速率限制，等待一下再尝试下一个端点
+        if (response.status === 429) {
+          await this.delay(1000 * (i + 1)); // 递增延迟
+        }
+        
+      } catch (error) {
+        const apiError = new Error(`API端点 ${i + 1} 请求失败: ${error instanceof Error ? error.message : String(error)}`);
+        errors.push(apiError);
+        console.warn(apiError.message);
+        
+        // 在尝试下一个端点前短暂延迟
+        if (i < this.API_ENDPOINTS.length - 1) {
+          await this.delay(500 * (i + 1));
+        }
+      }
+    }
+    
+    // 所有端点都失败了
+    const allErrors = errors.map(e => e.message).join('; ');
+    throw new Error(`所有 ${this.API_ENDPOINTS.length} 个API端点都失败了: ${allErrors}`);
+  }
+
+  // 智能API选择器 - 根据历史成功率选择最佳端点
+  private apiSuccessRates = new Map<string, { success: number; total: number; lastUsed: number }>();
+  
+  private updateApiStats(endpoint: string, success: boolean): void {
+    const stats = this.apiSuccessRates.get(endpoint) || { success: 0, total: 0, lastUsed: 0 };
+    stats.total++;
+    if (success) stats.success++;
+    stats.lastUsed = Date.now();
+    this.apiSuccessRates.set(endpoint, stats);
+  }
+  
+  private getBestEndpoint(): string {
+    let bestEndpoint = this.API_ENDPOINTS[0];
+    let bestScore = 0;
+    
+    for (const endpoint of this.API_ENDPOINTS) {
+      const stats = this.apiSuccessRates.get(endpoint);
+      if (!stats) continue;
+      
+      const successRate = stats.success / stats.total;
+      const recency = Math.max(0, 1 - (Date.now() - stats.lastUsed) / (24 * 60 * 60 * 1000)); // 24小时内的权重
+      const score = successRate * 0.7 + recency * 0.3;
+      
+      if (score > bestScore) {
+        bestScore = score;
+        bestEndpoint = endpoint;
+      }
+    }
+    
+    return bestEndpoint;
+  }
+
+  // 优化的备用API请求方法
+  private async fetchWithSmartFallback(path: string, timeout: number = 8000): Promise<Response> {
+    // 首先尝试最佳端点
+    const bestEndpoint = this.getBestEndpoint();
+    const bestIndex = this.API_ENDPOINTS.indexOf(bestEndpoint);
+    
+    // 重新排序端点，将最佳端点放在前面
+    const orderedEndpoints = [
+      bestEndpoint,
+      ...this.API_ENDPOINTS.filter(ep => ep !== bestEndpoint)
+    ];
+    
+    const errors: Error[] = [];
+    
+    for (let i = 0; i < orderedEndpoints.length; i++) {
+      const baseUrl = orderedEndpoints[i];
+      const fullUrl = path.startsWith('http') ? path : `${baseUrl}/${path.replace(/^\//, '')}`;
+      
+      try {
+        console.log(`尝试API端点 ${i + 1}/${orderedEndpoints.length}: ${baseUrl} ${i === 0 ? '(最佳)' : ''}`);
+        
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
+        
+        const response = await fetch(fullUrl, {
+          signal: controller.signal,
+          headers: {
+            'Accept': 'application/vnd.github.v3+json',
+            'User-Agent': 'MenthaMC-Website'
+          }
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (response.ok) {
+          console.log(`API端点调用成功: ${baseUrl}`);
+          this.updateApiStats(baseUrl, true);
+          return response;
+        }
+        
+        this.updateApiStats(baseUrl, false);
+        const error = new Error(`API端点响应失败: ${response.status} ${response.statusText}`);
+        errors.push(error);
+        console.warn(error.message);
+        
+        // 如果是速率限制，等待一下再尝试下一个端点
+        if (response.status === 429) {
+          await this.delay(1000 * (i + 1));
+        }
+        
+      } catch (error) {
+        this.updateApiStats(baseUrl, false);
+        const apiError = new Error(`API端点请求失败: ${error instanceof Error ? error.message : String(error)}`);
+        errors.push(apiError);
+        console.warn(apiError.message);
+        
+        // 在尝试下一个端点前短暂延迟
+        if (i < orderedEndpoints.length - 1) {
+          await this.delay(500 * (i + 1));
+        }
+      }
+    }
+    
+    // 所有端点都失败了
+    const allErrors = errors.map(e => e.message).join('; ');
+    throw new Error(`所有 ${orderedEndpoints.length} 个API端点都失败了: ${allErrors}`);
+  }
+
   private async executeWithRetry<T>(
     operation: () => Promise<T>,
     context: string
@@ -125,16 +288,58 @@ export class GitHubApiService {
     throw new Error(`GitHub API ${context} 在 ${this.config.retryAttempts} 次尝试后仍然失败: ${lastError!.message}`);
   }
 
+  // 使用智能备用API的缓存请求方法
+  private async requestWithFallback<T>(cacheKey: string, apiPath: string, cacheTtl: number = 5 * 60 * 1000): Promise<T> {
+    try {
+      // 首先尝试从缓存获取数据
+      const { globalCache } = await import('./cache.service');
+      const cachedData = globalCache.get<T>(cacheKey);
+      
+      if (cachedData) {
+        console.log(`缓存命中: ${cacheKey}`);
+        return cachedData;
+      }
+      
+      console.log(`缓存未命中，使用智能备用API: ${cacheKey}`);
+      
+      // 如果缓存未命中，使用智能备用API
+      // 提取API路径（移除baseUrl前缀）
+      const cleanPath = apiPath.replace(`${this.config.baseUrl}/`, '');
+      const fallbackResponse = await this.fetchWithSmartFallback(cleanPath);
+      const data = await fallbackResponse.json();
+      
+      // 手动更新缓存
+      globalCache.set(cacheKey, data, cacheTtl);
+      console.log(`缓存更新: ${cacheKey}`);
+      
+      return data;
+    } catch (error) {
+      console.error(`API请求失败: ${apiPath}`, error);
+      
+      // 尝试返回过期的缓存数据作为最后的回退
+      try {
+        const { globalCache } = await import('./cache.service');
+        const cache = (globalCache as any).cache;
+        const item = cache.get(cacheKey);
+        if (item && item.data) {
+          console.warn(`所有API都失败，返回过期缓存数据: ${cacheKey}`);
+          return item.data;
+        }
+      } catch (cacheError) {
+        console.error('获取过期缓存数据也失败:', cacheError);
+      }
+      
+      throw error;
+    }
+  }
+
   async getUserInfo(username: string): Promise<GitHubUser> {
     const cacheKey = createCacheKey('github:user', { username });
-    
-    const response = await cacheFirstRequest.request<GitHubUser>(cacheKey, {
-      url: `${this.config.baseUrl}/users/${username}`,
-      method: 'GET',
-      cacheTtl: 10 * 60 * 1000 // 10分钟缓存
-    });
-
-    return response.data;
+    return this.requestWithFallback<GitHubUser>(
+      cacheKey,
+      `${this.config.baseUrl}/users/${username}`,
+      10 * 60 * 1000 // 10分钟缓存
+    );
   }
 
   async getUserRepositories(username: string, options: {
@@ -151,25 +356,20 @@ export class GitHubApiService {
       direction: options.direction || 'desc'
     });
 
-    const response = await cacheFirstRequest.request<GitHubRepository[]>(cacheKey, {
-      url: `${this.config.baseUrl}/users/${username}/repos?${params}`,
-      method: 'GET',
-      cacheTtl: 5 * 60 * 1000 // 5分钟缓存
-    });
-
-    return response.data;
+    return this.requestWithFallback<GitHubRepository[]>(
+      cacheKey,
+      `${this.config.baseUrl}/users/${username}/repos?${params}`,
+      5 * 60 * 1000 // 5分钟缓存
+    );
   }
 
   async getRepository(owner: string, repo: string): Promise<GitHubRepository> {
     const cacheKey = createCacheKey('github:repo', { owner, repo });
-    
-    const response = await cacheFirstRequest.request<GitHubRepository>(cacheKey, {
-      url: `${this.config.baseUrl}/repos/${owner}/${repo}`,
-      method: 'GET',
-      cacheTtl: 10 * 60 * 1000 // 10分钟缓存
-    });
-
-    return response.data;
+    return this.requestWithFallback<GitHubRepository>(
+      cacheKey,
+      `${this.config.baseUrl}/repos/${owner}/${repo}`,
+      10 * 60 * 1000 // 10分钟缓存
+    );
   }
 
   async searchRepositories(query: string, options: {
@@ -187,13 +387,11 @@ export class GitHubApiService {
       page: (options.page || 1).toString()
     });
 
-    const response = await cacheFirstRequest.request<{ items: GitHubRepository[]; total_count: number }>(cacheKey, {
-      url: `${this.config.baseUrl}/search/repositories?${params}`,
-      method: 'GET',
-      cacheTtl: 3 * 60 * 1000 // 3分钟缓存（搜索结果变化较快）
-    });
-
-    return response.data;
+    return this.requestWithFallback<{ items: GitHubRepository[]; total_count: number }>(
+      cacheKey,
+      `${this.config.baseUrl}/search/repositories?${params}`,
+      3 * 60 * 1000 // 3分钟缓存（搜索结果变化较快）
+    );
   }
 
   async getBranches(owner: string, repo: string, options: {
@@ -206,13 +404,11 @@ export class GitHubApiService {
       page: (options.page || 1).toString()
     });
 
-    const response = await cacheFirstRequest.request<GitHubBranch[]>(cacheKey, {
-      url: `${this.config.baseUrl}/repos/${owner}/${repo}/branches?${params}`,
-      method: 'GET',
-      cacheTtl: 5 * 60 * 1000 // 5分钟缓存
-    });
-
-    return response.data;
+    return this.requestWithFallback<GitHubBranch[]>(
+      cacheKey,
+      `${this.config.baseUrl}/repos/${owner}/${repo}/branches?${params}`,
+      5 * 60 * 1000 // 5分钟缓存
+    );
   }
 
   async getRateLimit(): Promise<{
@@ -244,13 +440,10 @@ export class GitHubApiService {
     };
   }> {
     const cacheKey = 'github:rate-limit';
-    
-    const response = await cacheFirstRequest.request(cacheKey, {
-      url: `${this.config.baseUrl}/rate_limit`,
-      method: 'GET',
-      cacheTtl: 30 * 1000 // 30秒缓存（速率限制信息变化较快）
-    });
-
-    return response.data;
+    return this.requestWithFallback(
+      cacheKey,
+      `${this.config.baseUrl}/rate_limit`,
+      30 * 1000 // 30秒缓存（速率限制信息变化较快）
+    );
   }
 }

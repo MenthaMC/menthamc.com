@@ -37,31 +37,6 @@
                         <h3 class="project-title">{{ project.title }}</h3>
                         <p class="project-description">{{ project.description }}</p>
 
-                        <div class="project-features">
-                            <div
-                                class="feature-tag"
-                                v-for="feature in project.features"
-                                :key="feature"
-                                data-hover-animate
-                            >
-                                {{ feature }}
-                            </div>
-                        </div>
-
-                        <div class="project-stats">
-                            <div class="stat-item">
-                                <span class="stat-icon">⭐</span>
-                                <span class="stat-value">{{ project.stats.stars }}</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-icon">🍴</span>
-                                <span class="stat-value">{{ project.stats.forks }}</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-icon">📦</span>
-                                <span class="stat-value">{{ project.stats.version }}</span>
-                            </div>
-                        </div>
                     </div>
 
                     <!-- 右侧操作区域 -->
@@ -450,25 +425,6 @@ const handleViewAll = () => {
     background: rgba(16, 185, 129, 0.1);
     border-color: rgba(16, 185, 129, 0.3);
     color: #10b981;
-}
-
-.project-stats {
-    display: flex;
-    gap: 24px;
-    margin-bottom: 24px;
-}
-
-.stat-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    color: #9ca3af;
-    font-size: 14px;
-    font-weight: 500;
-}
-
-.stat-icon {
-    font-size: 16px;
 }
 
 .project-actions {

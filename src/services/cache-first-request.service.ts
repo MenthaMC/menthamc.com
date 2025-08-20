@@ -76,7 +76,7 @@ export class CacheFirstRequestService {
   }
 
   /**
-   * 发起API请求
+   * 发起API请求 - 使用备用API机制
    */
   private async makeApiRequest<T>(options: RequestOptions): Promise<T> {
     const {
@@ -86,6 +86,12 @@ export class CacheFirstRequestService {
       body
     } = options;
 
+    // 如果是GitHub API请求，使用备用API机制
+    if (url.includes('/github/') || url.includes('api.github.com')) {
+      return this.makeGitHubApiRequest<T>(url, method, headers, body);
+    }
+
+    // 非GitHub API请求，使用原有逻辑
     const requestConfig: RequestInit = {
       method,
       headers: {
@@ -110,6 +116,107 @@ export class CacheFirstRequestService {
     } else {
       return await response.text() as T;
     }
+  }
+
+  /**
+   * GitHub API请求 - 使用多个备用端点
+   */
+  private async makeGitHubApiRequest<T>(
+    url: string, 
+    method: string = 'GET', 
+    headers: Record<string, string> = {},
+    body?: any
+  ): Promise<T> {
+    const { api } = await import('@/main');
+    
+    // 多个备用API端点
+    const API_ENDPOINTS = [
+      `${api}/github`, // 主要代理API
+      'https://api.github.com', // GitHub官方API
+      'https://github.com/api/v3', // GitHub备用端点
+    ];
+
+    // 提取API路径
+    let apiPath = url;
+    for (const endpoint of API_ENDPOINTS) {
+      if (url.startsWith(endpoint)) {
+        apiPath = url.replace(endpoint, '').replace(/^\/+/, '');
+        break;
+      }
+    }
+
+    const errors: Error[] = [];
+    const timeout = 8000;
+
+    for (let i = 0; i < API_ENDPOINTS.length; i++) {
+      const baseUrl = API_ENDPOINTS[i];
+      const fullUrl = `${baseUrl}/${apiPath}`;
+      
+      try {
+        console.log(`尝试API端点 ${i + 1}/${API_ENDPOINTS.length}: ${baseUrl}`);
+        
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
+        
+        const requestConfig: RequestInit = {
+          method,
+          signal: controller.signal,
+          headers: {
+            'Accept': 'application/vnd.github.v3+json',
+            'User-Agent': 'MenthaMC-Website',
+            ...headers
+          }
+        };
+
+        if (body && method !== 'GET') {
+          requestConfig.body = typeof body === 'string' ? body : JSON.stringify(body);
+        }
+
+        const response = await fetch(fullUrl, requestConfig);
+        clearTimeout(timeoutId);
+        
+        if (response.ok) {
+          console.log(`API端点 ${i + 1} 调用成功: ${baseUrl}`);
+          
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            return await response.json();
+          } else {
+            return await response.text() as T;
+          }
+        }
+        
+        const error = new Error(`API端点 ${i + 1} 响应失败: ${response.status} ${response.statusText}`);
+        errors.push(error);
+        console.warn(error.message);
+        
+        // 如果是速率限制，等待一下再尝试下一个端点
+        if (response.status === 429) {
+          await this.delay(1000 * (i + 1));
+        }
+        
+      } catch (error) {
+        const apiError = new Error(`API端点 ${i + 1} 请求失败: ${error instanceof Error ? error.message : String(error)}`);
+        errors.push(apiError);
+        console.warn(apiError.message);
+        
+        // 在尝试下一个端点前短暂延迟
+        if (i < API_ENDPOINTS.length - 1) {
+          await this.delay(500 * (i + 1));
+        }
+      }
+    }
+    
+    // 所有端点都失败了
+    const allErrors = errors.map(e => e.message).join('; ');
+    throw new Error(`所有 ${API_ENDPOINTS.length} 个API端点都失败了: ${allErrors}`);
+  }
+
+  /**
+   * 延迟函数
+   */
+  private async delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   /**
