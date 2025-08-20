@@ -131,9 +131,8 @@ export class CacheFirstRequestService {
     
     // 多个备用API端点
     const API_ENDPOINTS = [
-      `${api}/github`, // 主要代理API
+      `${api}`, // 主要代理API
       'https://api.github.com', // GitHub官方API
-      'https://github.com/api/v3', // GitHub备用端点
     ];
 
     // 提取API路径

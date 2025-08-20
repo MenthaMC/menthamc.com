@@ -458,7 +458,7 @@ const fetchWithFallback = async (url: string, timeout: number = 10000): Promise<
             console.warn('代理API失败，尝试使用GitHub API回退:', error)
             
             // 提取GitHub API路径
-            const githubPath = url.replace(`${api}/github/`, '')
+            const githubPath = url.replace(`${api}/`, '')
             const directUrl = `https://api.github.com/${githubPath}`
             
             try {
@@ -527,13 +527,13 @@ const fetchLatestBuild = async (branch: string = 'main'): Promise<MintReleaseInf
         
         if (branch === 'main' || branch === 'master') {
             // 主分支：获取最新的GitHub Release
-            const response = await fetchWithFallback(`${api}/github/repos/MenthaMC/Mint/releases/latest`)
+            const response = await fetchWithFallback(`${api}/repos/MenthaMC/Mint/releases/latest`)
             const release = await response.json()
             
             // 获取提交信息
             let commitInfo = undefined
             try {
-                const commitResponse = await fetchWithFallback(`${api}/github/repos/MenthaMC/Mint/commits/${release.target_commitish || 'main'}`)
+                const commitResponse = await fetchWithFallback(`${api}/repos/MenthaMC/Mint/commits/${release.target_commitish || 'main'}`)
                 const commitData = await commitResponse.json()
                 commitInfo = {
                     sha: commitData.sha?.substring(0, 7) || 'unknown',
@@ -587,7 +587,7 @@ const fetchLatestBuild = async (branch: string = 'main'): Promise<MintReleaseInf
             // 非主分支：尝试查找该分支对应的Release，如果没有则获取最新提交
             try {
                 // 首先尝试查找分支对应的Release
-                const releasesResponse = await fetchWithFallback(`${api}/github/repos/MenthaMC/Mint/releases?per_page=50`)
+                const releasesResponse = await fetchWithFallback(`${api}/repos/MenthaMC/Mint/releases?per_page=50`)
                 const releases = await releasesResponse.json()
                 
                 // 查找目标分支的Release
@@ -610,7 +610,7 @@ const fetchLatestBuild = async (branch: string = 'main'): Promise<MintReleaseInf
                     // 获取提交信息
                     let commitInfo = undefined
                     try {
-                        const commitResponse = await fetchWithFallback(`${api}/github/repos/MenthaMC/Mint/commits/${branchRelease.target_commitish || branch}`)
+                        const commitResponse = await fetchWithFallback(`${api}/repos/MenthaMC/Mint/commits/${branchRelease.target_commitish || branch}`)
                         const commitData = await commitResponse.json()
                         commitInfo = {
                             sha: commitData.sha?.substring(0, 7) || 'unknown',
@@ -656,7 +656,7 @@ const fetchLatestBuild = async (branch: string = 'main'): Promise<MintReleaseInf
             }
             
             // 如果没有找到Release，获取分支的最新提交
-            const commitsResponse = await fetchWithFallback(`${api}/github/repos/MenthaMC/Mint/commits?sha=${branch}&per_page=1`)
+            const commitsResponse = await fetchWithFallback(`${api}/repos/MenthaMC/Mint/commits?sha=${branch}&per_page=1`)
             const commits = await commitsResponse.json()
             
             if (commits && commits.length > 0) {
@@ -713,7 +713,7 @@ const fetchReleases = async (limit: number = 100, branch: string = 'main') => {
         
         if (branch === 'main' || branch === 'master') {
             // 主分支：获取所有GitHub Releases
-            const response = await fetchWithFallback(`${api}/github/repos/MenthaMC/Mint/releases?per_page=100`)
+            const response = await fetchWithFallback(`${api}/repos/MenthaMC/Mint/releases?per_page=100`)
             const githubReleases = await response.json()
             
             if (githubReleases && githubReleases.length > 0) {
@@ -723,7 +723,7 @@ const fetchReleases = async (limit: number = 100, branch: string = 'main') => {
                         // 获取提交信息
                         let commitInfo = undefined
                         try {
-                            const commitResponse = await fetchWithFallback(`${api}/github/repos/MenthaMC/Mint/commits/${release.target_commitish || 'main'}`)
+                            const commitResponse = await fetchWithFallback(`${api}/repos/MenthaMC/Mint/commits/${release.target_commitish || 'main'}`)
                             const commitData = await commitResponse.json()
                             commitInfo = {
                                 sha: commitData.sha?.substring(0, 7) || 'unknown',
@@ -775,7 +775,7 @@ const fetchReleases = async (limit: number = 100, branch: string = 'main') => {
             }
         } else {
             // 非主分支：获取分支的所有提交历史作为构建信息
-            const commitsResponse = await fetchWithFallback(`${api}/github/repos/MenthaMC/Mint/commits?sha=${branch}&per_page=100`)
+            const commitsResponse = await fetchWithFallback(`${api}/repos/MenthaMC/Mint/commits?sha=${branch}&per_page=100`)
             const commits = await commitsResponse.json()
             
             if (commits && commits.length > 0) {
@@ -1008,7 +1008,7 @@ const getBranchLatestJar = async (branch: string): Promise<string | null> => {
         
         if (branch === 'main' || branch === 'master') {
             // 主分支：获取最新Release的JAR
-            const response = await fetchWithFallback(`${api}/github/repos/MenthaMC/Mint/releases/latest`)
+            const response = await fetchWithFallback(`${api}/repos/MenthaMC/Mint/releases/latest`)
             const release = await response.json()
             
             const jarAsset = release.assets?.find((asset: any) => 
@@ -1022,7 +1022,7 @@ const getBranchLatestJar = async (branch: string): Promise<string | null> => {
             }
         } else {
             // 非主分支：查找分支对应的Release
-            const releasesResponse = await fetchWithFallback(`${api}/github/repos/MenthaMC/Mint/releases?per_page=50`)
+            const releasesResponse = await fetchWithFallback(`${api}/repos/MenthaMC/Mint/releases?per_page=50`)
             const releases = await releasesResponse.json()
             
             const branchRelease = releases.find((release: any) => 

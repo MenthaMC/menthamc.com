@@ -225,7 +225,7 @@ const fetchWithFallback = async (url: string, timeout: number = 10000): Promise<
             console.warn('代理API失败，尝试使用GitHub API回退:', error)
             
             // 提取GitHub API路径
-            const githubPath = url.replace(`${api}/github/`, '')
+            const githubPath = url.replace(`${api}/`, '')
             const directUrl = `https://api.github.com/${githubPath}`
             
             try {
@@ -293,7 +293,7 @@ const fetchWithFallback = async (url: string, timeout: number = 10000): Promise<
 const fetchBranchesWithFallback = async (): Promise<any[]> => {
     try {
         // 尝试获取分支列表
-        const branchesResponse = await fetchWithFallback(`${api}/github/repos/MenthaMC/Mint/branches?per_page=50`)
+        const branchesResponse = await fetchWithFallback(`${api}/repos/MenthaMC/Mint/branches?per_page=50`)
         const branches = await branchesResponse.json()
         
         if (Array.isArray(branches) && branches.length > 0) {
@@ -320,7 +320,7 @@ const fetchBranchesWithFallback = async (): Promise<any[]> => {
 // 增强的仓库信息获取函数
 const fetchRepositoryWithFallback = async (): Promise<any> => {
     try {
-        const repoResponse = await fetchWithFallback(`${api}/github/repos/MenthaMC/Mint`)
+        const repoResponse = await fetchWithFallback(`${api}/repos/MenthaMC/Mint`)
         const repoData = await repoResponse.json()
         
         if (repoData && repoData.default_branch) {
@@ -396,7 +396,7 @@ const fetchBranchInfo = async () => {
                 branches.map(async (branch, index) => {
                     try {
                         // 使用回退机制获取分支最新提交的详细信息
-                        const commitResponse = await fetchWithFallback(`${api}/github/repos/MenthaMC/Mint/commits/${branch.commit.sha}`)
+                        const commitResponse = await fetchWithFallback(`${api}/repos/MenthaMC/Mint/commits/${branch.commit.sha}`)
                         const commitData = await commitResponse.json()
                         
                         // 获取文件大小信息
@@ -408,7 +408,7 @@ const fetchBranchInfo = async () => {
                         let versionType = ''
                         try {
                             // 检查是否有对应的Release
-                            const releaseResponse = await fetchWithFallback(`${api}/github/repos/MenthaMC/Mint/releases`)
+                            const releaseResponse = await fetchWithFallback(`${api}/repos/MenthaMC/Mint/releases`)
                             const releases = await releaseResponse.json()
                             const hasRelease = releases.some((release: any) => 
                                 release.target_commitish === branch.name || 
@@ -572,7 +572,7 @@ const downloadSelected = async () => {
             // 主分支：获取最新Release的JAR文件
             try {
                 console.log('获取主分支最新Release...')
-                const releasesResponse = await fetchWithFallback(`${api}/github/repos/MenthaMC/Mint/releases/latest`)
+                const releasesResponse = await fetchWithFallback(`${api}/repos/MenthaMC/Mint/releases/latest`)
                 const releaseData = await releasesResponse.json()
                 
                 console.log('获取到Release数据:', releaseData)
@@ -609,7 +609,7 @@ const downloadSelected = async () => {
             // 非主分支：尝试查找该分支对应的Release
             try {
                 console.log(`查找分支 ${branchName} 的Release...`)
-                const releasesResponse = await fetchWithFallback(`${api}/github/repos/MenthaMC/Mint/releases?per_page=50`)
+                const releasesResponse = await fetchWithFallback(`${api}/repos/MenthaMC/Mint/releases?per_page=50`)
                 const releases = await releasesResponse.json()
                 
                 // 查找目标分支的Release
@@ -739,7 +739,7 @@ const verifyFile = async () => {
     try {
         console.log('尝试获取文件校验信息...')
         // 尝试获取最新Release的校验信息
-        const releasesResponse = await fetchWithFallback(`${api}/github/repos/MenthaMC/Mint/releases/latest`)
+        const releasesResponse = await fetchWithFallback(`${api}/repos/MenthaMC/Mint/releases/latest`)
         const releaseData = await releasesResponse.json()
         
         if (releaseData && releaseData.body) {

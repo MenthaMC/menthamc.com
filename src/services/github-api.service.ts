@@ -46,7 +46,7 @@ export class GitHubApiService {
 
   constructor(config: GitHubConfig = {}) {
     this.config = {
-      baseUrl: config.baseUrl || `${api}/github`,
+      baseUrl: config.baseUrl || `${api}`,
       timeout: config.timeout || 15000,
       retryAttempts: config.retryAttempts || 5,
       retryDelay: config.retryDelay || 2000
@@ -84,9 +84,8 @@ export class GitHubApiService {
 
   // 多个备用API端点配置
   private readonly API_ENDPOINTS = [
-    `${api}/github`, // 主要代理API
+    `${api}`, // 主要代理API
     'https://api.github.com', // GitHub官方API
-    'https://github.com/api/v3', // GitHub备用端点
     // 可以添加更多备用API端点
   ];
 

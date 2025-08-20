@@ -13,6 +13,13 @@ export default defineConfig({
     },
     server: {
         host: '0.0.0.0',
+        proxy: {
+            '/api/proxy': {
+                target: 'http://43.163.120.17:32767',
+                changeOrigin: true,
+                rewrite: (path) => path.replace(/^\/api\/proxy/, '/proxy')
+            }
+        }
     },
     build: {
         rollupOptions: {
