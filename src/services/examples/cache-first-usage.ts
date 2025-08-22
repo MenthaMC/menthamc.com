@@ -1,11 +1,12 @@
 import { cachedFetch, cacheFirstRequest, createCacheKey, type ApiResponse } from '../cache-first-request.service';
+import { logger } from '../../utils/logger';
 
 // 示例1: 基本用法 - 获取用户信息
 export async function getUserInfo(userId: string) {
   const cacheKey = `user:${userId}`;
   
   try {
-    const response = await cachedFetch<ApiResponse<any>>(
+    const response = await cachedFetch<ApiResponse<{ id: string; name: string; email: string }>>(
       cacheKey,
       `https://api.example.com/users/${userId}`,
       {
@@ -17,7 +18,7 @@ export async function getUserInfo(userId: string) {
       }
     );
 
-    console.log('用户信息获取结果:', {
+    logger.info('用户信息获取结果', {
       fromCache: response.fromCache,
       timestamp: new Date(response.timestamp).toLocaleString(),
       data: response.data
@@ -25,7 +26,7 @@ export async function getUserInfo(userId: string) {
 
     return response.data;
   } catch (error) {
-    console.error('获取用户信息失败:', error);
+    logger.error('获取用户信息失败', error);
     throw error;
   }
 }
@@ -35,7 +36,7 @@ export async function searchProducts(query: string, page: number = 1, limit: num
   const cacheKey = createCacheKey('products:search', { query, page, limit });
   
   try {
-    const response = await cacheFirstRequest.request<ApiResponse<any[]>>(
+    const response = await cacheFirstRequest.request<ApiResponse<Array<{ id: string; name: string; price: number }>>>(
       cacheKey,
       {
         url: 'https://api.example.com/products/search',
@@ -46,7 +47,7 @@ export async function searchProducts(query: string, page: number = 1, limit: num
     );
 
     if (response.error) {
-      console.warn('API请求有问题，但返回了缓存数据:', response.error);
+      logger.warn('API请求有问题，但返回了缓存数据', response.error);
     }
 
     return {
@@ -55,7 +56,7 @@ export async function searchProducts(query: string, page: number = 1, limit: num
       timestamp: response.timestamp
     };
   } catch (error) {
-    console.error('搜索产品失败:', error);
+    logger.error('搜索产品失败', error);
     return {
       products: [],
       fromCache: false,
@@ -71,7 +72,7 @@ export async function refreshUserInfo(userId: string) {
   
   try {
     // 跳过缓存，强制请求最新数据
-    const response = await cachedFetch<ApiResponse<any>>(
+    const response = await cachedFetch<ApiResponse<{ id: string; name: string; email: string }>>(
       cacheKey,
       `https://api.example.com/users/${userId}`,
       {
@@ -80,17 +81,17 @@ export async function refreshUserInfo(userId: string) {
       }
     );
 
-    console.log('强制刷新用户信息完成');
+    logger.info('强制刷新用户信息完成');
     return response.data;
   } catch (error) {
-    console.error('强制刷新用户信息失败:', error);
+    logger.error('强制刷新用户信息失败', error);
     throw error;
   }
 }
 
 // 示例4: 批量预热缓存
 export async function preloadUserData(userIds: string[]) {
-  console.log('开始预热用户数据缓存...');
+  logger.info('开始预热用户数据缓存...');
   
   const promises = userIds.map(async (userId) => {
     const cacheKey = `user:${userId}`;
@@ -101,7 +102,7 @@ export async function preloadUserData(userIds: string[]) {
       });
       return { userId, success: true };
     } catch (error) {
-      console.error(`预热用户 ${userId} 数据失败:`, error);
+      logger.error(`预热用户 ${userId} 数据失败`, error);
       return { userId, success: false, error: error.message };
     }
   });
@@ -109,7 +110,7 @@ export async function preloadUserData(userIds: string[]) {
   const results = await Promise.allSettled(promises);
   const successful = results.filter(r => r.status === 'fulfilled' && r.value.success).length;
   
-  console.log(`缓存预热完成: ${successful}/${userIds.length} 成功`);
+  logger.info(`缓存预热完成: ${successful}/${userIds.length} 成功`);
   return results;
 }
 
@@ -131,7 +132,7 @@ export class CacheManager {
       }
     });
 
-    console.log(`清除用户 ${userId} 相关缓存: ${clearedCount} 项`);
+    logger.info(`清除用户 ${userId} 相关缓存: ${clearedCount} 项`);
     return clearedCount;
   }
 
@@ -167,7 +168,7 @@ export async function getRobustData(dataId: string) {
   const cacheKey = `data:${dataId}`;
   
   try {
-    const response = await cachedFetch<ApiResponse<any>>(
+    const response = await cachedFetch<ApiResponse<{ id: string; value: unknown }>>(
       cacheKey,
       `https://api.example.com/data/${dataId}`,
       {
@@ -177,7 +178,7 @@ export async function getRobustData(dataId: string) {
 
     // 检查是否是降级数据
     if (response.error) {
-      console.warn('使用了降级数据:', response.error);
+      logger.warn('使用了降级数据', response.error);
       // 可以在UI中显示警告信息
     }
 
@@ -189,7 +190,7 @@ export async function getRobustData(dataId: string) {
     };
 
   } catch (error) {
-    console.error('获取数据完全失败:', error);
+    logger.error('获取数据完全失败', error);
     
     // 返回默认数据或空数据
     return {

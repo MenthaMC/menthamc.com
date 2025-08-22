@@ -19,6 +19,7 @@ import { onMounted } from 'vue'
 import Footer from './components/Footer.vue'
 import Navbar from './components/Navbar.vue'
 import { useGlobalAnimations } from './composables/useGlobalAnimations'
+import { logger } from './utils/logger'
 
 const { initGlobalAnimations } = useGlobalAnimations()
 
@@ -28,6 +29,8 @@ onMounted(() => {
     
     // 初始化全局动画系统
     initGlobalAnimations()
+    
+    logger.debug('应用初始化完成')
 })
 </script>
 
@@ -69,6 +72,24 @@ onMounted(() => {
 @media (max-width: 480px) {
     .container {
         padding: 0 0.75rem;
+    }
+}
+
+/* 应用内容容器 */
+.app-content {
+    opacity: 0;
+    animation: appFadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation-delay: 0.2s;
+}
+
+@keyframes appFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 

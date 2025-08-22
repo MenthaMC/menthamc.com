@@ -66,11 +66,12 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import { logger } from '@/utils/logger'
 
 const { t } = useI18n()
 
 // 使用t函数避免未使用警告
-console.log('Features showcase loaded with translations:', t('home.features.title'))
+logger.debug('Features showcase loaded with translations:', t('home.features.title'))
 
 const features = [
     {

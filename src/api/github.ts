@@ -1,5 +1,12 @@
 import { GitHubApiService } from '@/services/github-api.service'
 import { cacheFirstRequest, createCacheKey } from '@/services/cache-first-request.service'
+import { logger } from '@/utils/logger'
+import type { 
+  GitHubApiCommitResponse, 
+  GitHubApiContributorResponse, 
+  GitHubApiPullRequestResponse,
+  GitHubApiRepositoryResponse 
+} from '@/types/api'
 
 // GitHub API服务实例
 const githubApiService = new GitHubApiService()
@@ -49,8 +56,8 @@ export async function getContributionStats(): Promise<{
     }
 
     // 如果需要重新计算统计数据
-    const [commitsResponse, contributorsResponse, prsResponse] = await Promise.all([
-      cacheFirstRequest.request<any>(`${cacheKey}:commits`, {
+    const [, , prsResponse] = await Promise.all([
+      cacheFirstRequest.request<GitHubApiCommitResponse[]>(`${cacheKey}:commits`, {
         url: `${githubApiService['config'].baseUrl}/repos/${REPO_OWNER}/${REPO_NAME}/commits?per_page=1`,
         method: 'GET',
         headers: {
@@ -59,7 +66,7 @@ export async function getContributionStats(): Promise<{
         },
         cacheTtl: 5 * 60 * 1000 // 5分钟缓存
       }),
-      cacheFirstRequest.request<any>(`${cacheKey}:contributors`, {
+      cacheFirstRequest.request<GitHubApiContributorResponse[]>(`${cacheKey}:contributors`, {
         url: `${githubApiService['config'].baseUrl}/repos/${REPO_OWNER}/${REPO_NAME}/contributors?per_page=1&anon=1`,
         method: 'GET',
         headers: {
@@ -68,7 +75,7 @@ export async function getContributionStats(): Promise<{
         },
         cacheTtl: 15 * 60 * 1000 // 15分钟缓存
       }),
-      cacheFirstRequest.request<Array<{ merged_at: string | null }>>(`${cacheKey}:prs`, {
+      cacheFirstRequest.request<GitHubApiPullRequestResponse[]>(`${cacheKey}:prs`, {
         url: `${githubApiService['config'].baseUrl}/repos/${REPO_OWNER}/${REPO_NAME}/pulls?state=closed&per_page=100`,
         method: 'GET',
         headers: {
@@ -96,7 +103,7 @@ export async function getContributionStats(): Promise<{
       data: contributionStats
     }
   } catch (error) {
-    console.error('API: 获取贡献统计数据失败', error)
+    logger.error('API: 获取贡献统计数据失败', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : '未知错误'
@@ -168,7 +175,7 @@ export async function getRecentCommits(limit: number = 10): Promise<{
       data: formattedCommits
     }
   } catch (error) {
-    console.error('API: 获取最近提交记录失败', error)
+    logger.error('API: 获取最近提交记录失败', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : '未知错误'
@@ -241,7 +248,7 @@ export async function getRecentPullRequests(limit: number = 5): Promise<{
       data: formattedPRs
     }
   } catch (error) {
-    console.error('API: 获取最近PR记录失败', error)
+    logger.error('API: 获取最近PR记录失败', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : '未知错误'
@@ -272,7 +279,7 @@ export async function getRepositoryInfo(): Promise<{
   const cacheKey = createCacheKey('github:repo-info', { owner: REPO_OWNER, repo: REPO_NAME })
   
   try {
-    const response = await cacheFirstRequest.request<any>(cacheKey, {
+    const response = await cacheFirstRequest.request<GitHubApiRepositoryResponse>(cacheKey, {
       url: `${githubApiService['config'].baseUrl}/repos/${REPO_OWNER}/${REPO_NAME}`,
       method: 'GET',
       headers: {
@@ -301,7 +308,7 @@ export async function getRepositoryInfo(): Promise<{
       }
     }
   } catch (error) {
-    console.error('API: 获取仓库信息失败', error)
+    logger.error('API: 获取仓库信息失败', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : '未知错误'
@@ -334,7 +341,7 @@ export function clearGitHubCache(): {
       message: `GitHub API缓存已清除: ${clearedCount} 项`
     }
   } catch (error) {
-    console.error('API: 清除GitHub缓存失败', error)
+    logger.error('API: 清除GitHub缓存失败', error)
     return {
       success: false,
       message: error instanceof Error ? error.message : '清除缓存失败'

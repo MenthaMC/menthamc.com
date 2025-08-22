@@ -65,9 +65,7 @@
 </template>
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
-
-const { t } = useI18n()
+// 暂时不需要国际化功能
 </script>
 
 <script lang="ts">

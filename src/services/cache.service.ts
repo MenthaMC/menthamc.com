@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logger'
+
 export interface CacheItem<T = unknown> {
   data: T;
   timestamp: number;
@@ -51,7 +53,7 @@ export class CacheService {
     }
 
     if (deletedCount > 0) {
-      console.log(`缓存清理: 删除了 ${deletedCount} 个过期项`);
+      logger.debug(`缓存清理: 删除了 ${deletedCount} 个过期项`);
     }
 
     // 如果缓存大小仍然超过限制，删除最旧的项
@@ -71,7 +73,7 @@ export class CacheService {
       }
 
       if (removedCount > 0) {
-        console.log(`缓存大小限制: 删除了 ${removedCount} 个最旧项`);
+        logger.debug(`缓存大小限制: 删除了 ${removedCount} 个最旧项`);
       }
     }
   }
@@ -87,7 +89,7 @@ export class CacheService {
     };
 
     this.cache.set(key, item);
-    console.log(`缓存设置: ${key} (TTL: ${ttl}ms)`);
+    logger.debug(`缓存设置: ${key} (TTL: ${ttl}ms)`);
   }
 
   get<T>(key: string): T | null {
@@ -100,11 +102,11 @@ export class CacheService {
     const now = Date.now();
     if (now > item.expiresAt) {
       this.cache.delete(key);
-      console.log(`缓存过期: ${key}`);
+      logger.debug(`缓存过期: ${key}`);
       return null;
     }
 
-    console.log(`缓存命中: ${key}`);
+    logger.debug(`缓存命中: ${key}`);
     return item.data as T;
   }
 
@@ -124,7 +126,7 @@ export class CacheService {
   delete(key: string): boolean {
     const deleted = this.cache.delete(key);
     if (deleted) {
-      console.log(`缓存删除: ${key}`);
+      logger.debug(`缓存删除: ${key}`);
     }
     return deleted;
   }
@@ -132,7 +134,7 @@ export class CacheService {
   clear(): void {
     const size = this.cache.size;
     this.cache.clear();
-    console.log(`缓存清空: 删除了 ${size} 个项`);
+    logger.debug(`缓存清空: 删除了 ${size} 个项`);
   }
 
   getStats(): {

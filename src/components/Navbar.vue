@@ -168,6 +168,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { logger } from '../utils/logger'
 import { getCurrentLanguage, switchLanguage } from '../locales'
 
 const { t } = useI18n()
@@ -228,7 +229,7 @@ const selectLanguage = (lang: 'zh-CN' | 'en-US') => {
         previousLanguage,
     })
 
-    console.log(t('navbar.console.switchLanguage') + ':', lang)
+    logger.info(t('navbar.console.switchLanguage'), { language: lang })
 }
 
 // 点击外部处理函数

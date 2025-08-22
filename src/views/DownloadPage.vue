@@ -27,6 +27,7 @@ import BuildHistory from '@/components/download/BuildHistory.vue'
 import DownloadHero from '@/components/download/DownloadHero.vue'
 import DownloadOptions from '@/components/download/DownloadOptions.vue'
 import type { MintReleaseInfo } from '@/services/mint-project.service'
+import { logger } from '@/utils/logger'
 
 // 存储最新构建信息
 const latestBuild = ref<MintReleaseInfo | undefined>(undefined)
@@ -34,7 +35,7 @@ const latestBuild = ref<MintReleaseInfo | undefined>(undefined)
 // 处理最新构建信息
 const handleLatestBuildReady = (buildInfo: MintReleaseInfo) => {
     latestBuild.value = buildInfo
-    console.log('最新构建信息已更新:', buildInfo)
+    logger.debug('最新构建信息已更新:', buildInfo)
 }
 
 // 生成粒子样式

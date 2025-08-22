@@ -77,6 +77,7 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { mintProjectService } from '@/services/mint-project.service'
 import { lemintProjectService } from '@/services/lemint-project.service'
+import { logger } from '@/utils/logger'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -179,7 +180,8 @@ interface Project {
 }
 
 const handleDownload = (project: Project) => {
-    console.log(t('home.projects.actions.download') + ':', project.title)
+    // 使用t函数避免未使用警告
+    logger.debug(t('home.projects.actions.download') + ':', project.title)
     router.push('/download')
 }
 

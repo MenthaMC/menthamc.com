@@ -149,10 +149,10 @@
 
 <script setup lang="ts">
 import { useLanguage } from '@/composables/useLanguage'
-import { usePageTransition } from '@/composables/usePageTransition'
 import { onMounted, ref } from 'vue'
 import { getContributionStats } from '@/api/github'
 import type { ContributionStats } from '@/api/github'
+import { logger } from '@/utils/logger'
 
 const { t } = useLanguage()
 const contributionStats = ref<ContributionStats | null>(null)
@@ -173,7 +173,7 @@ async function fetchContributionStats() {
         }
     } catch (err) {
         error.value = err instanceof Error ? err.message : t('community.contribute.stats.unknownError')
-        console.error(t('community.contribute.stats.fetchError') + ':', err)
+        logger.error(t('community.contribute.stats.fetchError') + ':', err)
     } finally {
         isLoading.value = false
     }

@@ -1,4 +1,5 @@
 import { createI18n } from 'vue-i18n'
+import { logger } from '../utils/logger'
 import enUS from './en-US'
 import zhCN from './zh-CN'
 
@@ -19,7 +20,7 @@ const getStoredLanguage = (): 'zh-CN' | 'en-US' => {
             return stored
         }
     } catch (error) {
-        console.warn('无法访问localStorage:', error)
+        logger.warn('无法访问localStorage', error)
     }
     return getBrowserLanguage()
 }
@@ -41,7 +42,7 @@ export const switchLanguage = (locale: 'zh-CN' | 'en-US') => {
     try {
         localStorage.setItem('language', locale)
     } catch (error) {
-        console.warn('无法保存语言设置到localStorage:', error)
+        logger.warn('无法保存语言设置到localStorage', error)
     }
     document.documentElement.lang = locale
 }

@@ -21,6 +21,7 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { logger } from '../utils/logger'
 import ProjectCard from './ProjectCard.vue'
 
 // 模板引用
@@ -50,14 +51,14 @@ const projects = computed(() => [
 
 // 事件处理函数
 const handleProjectDetail = (projectType: string) => {
-    console.log(t('home.projects.actions.viewDetail') + ':', projectType)
+    logger.info(t('home.projects.actions.viewDetail'), { projectType })
     // 可以根据项目类型跳转到不同的详情页面
     // 这里暂时跳转到下载页面
     router.push('/download')
 }
 
 const handleGitHub = (url: string) => {
-    console.log(t('home.projects.actions.github') + ':', url)
+    logger.info(t('home.projects.actions.github'), { url })
     window.open(url, '_blank')
 }
 

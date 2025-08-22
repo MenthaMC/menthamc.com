@@ -236,11 +236,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, defineEmits } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { api } from '@/main'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { GitHubApiService } from '@/services/github-api.service'
 import type { MintReleaseInfo } from '@/services/mint-project.service'
+import { cacheFirstRequest } from '@/services/cache-first-request.service'
+import { globalCache } from '@/services/cache.service'
+import { logger } from '@/utils/logger'
 
 // 定义 props 来接收选中的分支
 interface Props {
@@ -252,9 +253,11 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 // 定义事件
-const emit = defineEmits(['latestBuildReady'])
+const emit = defineEmits<{
+  latestBuildReady: [build: MintReleaseInfo]
+}>()
 
-const { t } = useI18n()
+// const { t } = useI18n() // 暂时不需要国际化
 
 // 分页接口定义
 interface PaginationInfo {
@@ -308,7 +311,7 @@ const handleClickOutside = (event: MouseEvent) => {
 }
 
 // GitHub API 服务实例
-const githubApi = new GitHubApiService()
+const api = new GitHubApiService()
 
 // 更新分页信息
 const updatePagination = (totalCount: number) => {
@@ -338,12 +341,6 @@ const goToPage = (page: number) => {
             section.scrollIntoView({ behavior: 'smooth' })
         }
     }
-}
-
-// 每页数量变化处理
-const onPerPageChange = () => {
-    pagination.value.page = 1 // 重置到第一页
-    applyPagination()
 }
 
 // 获取可见的页码
@@ -388,41 +385,33 @@ const getVisiblePages = (): number[] => {
     return visible
 }
 
-import { cacheFirstRequest } from '@/services/cache-first-request.service'
-import { globalCache } from '@/services/cache.service'
-
 // 带缓存、超时和回退的API调用函数
 const fetchWithFallback = async (url: string, timeout: number = 10000): Promise<Response> => {
-    // 生成缓存键
     const cacheKey = `api:${url}`
     
     try {
-        // 首先尝试从缓存获取数据
         const cachedResponse = await cacheFirstRequest.request<any>(cacheKey, {
             url,
             headers: {
                 'Accept': 'application/vnd.github.v3+json',
                 'User-Agent': 'MenthaMC-Website'
             },
-            cacheTtl: 5 * 60 * 1000, // 5分钟缓存
+            cacheTtl: 5 * 60 * 1000,
             skipCache: false
         })
         
-        // 如果从缓存获取成功，返回缓存数据
         if (cachedResponse.data && !cachedResponse.error) {
-            console.log('缓存命中:', url)
+            logger.debug('缓存命中:', url)
             return new Response(JSON.stringify(cachedResponse.data), {
                 status: 200,
                 headers: { 'Content-Type': 'application/json' }
             })
         }
         
-        // 如果缓存未命中或已过期，尝试使用代理API
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), timeout)
         
         try {
-            // 尝试使用代理API
             const response = await fetch(url, {
                 signal: controller.signal,
                 headers: {
@@ -434,30 +423,22 @@ const fetchWithFallback = async (url: string, timeout: number = 10000): Promise<
             clearTimeout(timeoutId)
             
             if (response.ok) {
-                console.log('代理API调用成功:', url)
-                
-                // 获取响应数据并更新缓存
+                logger.debug('代理API调用成功:', url)
                 const responseData = await response.json()
-                // 手动更新缓存
                 globalCache.set(cacheKey, responseData, 5 * 60 * 1000)
                 
-                // 返回新的响应对象
                 return new Response(JSON.stringify(responseData), {
                     status: 200,
                     headers: { 'Content-Type': 'application/json' }
                 })
             }
             
-            // 如果代理API失败，抛出错误以触发回退
             throw new Error(`代理API响应失败: ${response.status}`)
             
         } catch (error) {
             clearTimeout(timeoutId)
+            logger.warn('代理API失败，尝试使用GitHub API回退:', error)
             
-            // 如果是超时或其他错误，尝试直接使用GitHub API
-            console.warn('代理API失败，尝试使用GitHub API回退:', error)
-            
-            // 提取GitHub API路径
             const githubPath = url.replace(`${api}/`, '')
             const directUrl = `https://api.github.com/${githubPath}`
             
@@ -476,14 +457,10 @@ const fetchWithFallback = async (url: string, timeout: number = 10000): Promise<
                 clearTimeout(fallbackTimeoutId)
                 
                 if (fallbackResponse.ok) {
-                    console.log('GitHub API回退成功:', directUrl)
-                    
-                    // 获取响应数据并更新缓存
+                    logger.debug('GitHub API回退成功:', directUrl)
                     const responseData = await fallbackResponse.json()
-                    // 手动更新缓存
                     globalCache.set(cacheKey, responseData, 5 * 60 * 1000)
                     
-                    // 返回新的响应对象
                     return new Response(JSON.stringify(responseData), {
                         status: 200,
                         headers: { 'Content-Type': 'application/json' }
@@ -493,24 +470,20 @@ const fetchWithFallback = async (url: string, timeout: number = 10000): Promise<
                 throw new Error(`GitHub API也失败了: ${fallbackResponse.status}`)
                 
             } catch (fallbackError) {
-                console.error('GitHub API回退也失败:', fallbackError)
+                logger.error('GitHub API回退也失败:', fallbackError)
+                logger.warn('所有API都失败，使用模拟数据')
                 
-                // 如果所有API都失败，返回模拟数据以保证基本功能
-                console.warn('所有API都失败，使用模拟数据')
-                const mockData = {
+                return new Response(JSON.stringify({
                     message: 'API调用失败，使用默认数据'
-                }
-                
-                return new Response(JSON.stringify(mockData), {
+                }), {
                     status: 200,
                     headers: { 'Content-Type': 'application/json' }
                 })
             }
         }
     } catch (error) {
-        console.error('缓存请求失败:', error)
+        logger.error('缓存请求失败:', error)
         
-        // 如果缓存请求失败，返回模拟数据
         return new Response(JSON.stringify({
             message: 'API调用失败，使用默认数据'
         }), {
@@ -523,14 +496,12 @@ const fetchWithFallback = async (url: string, timeout: number = 10000): Promise<
 // 获取最新构建信息
 const fetchLatestBuild = async (branch: string = 'main'): Promise<MintReleaseInfo | null> => {
     try {
-        console.log('获取分支最新构建:', branch)
+        logger.debug('获取分支最新构建:', branch)
         
         if (branch === 'main' || branch === 'master') {
-            // 主分支：获取最新的GitHub Release
             const response = await fetchWithFallback(`${api}/repos/MenthaMC/Mint/releases/latest`)
             const release = await response.json()
             
-            // 获取提交信息
             let commitInfo = undefined
             try {
                 const commitResponse = await fetchWithFallback(`${api}/repos/MenthaMC/Mint/commits/${release.target_commitish || 'main'}`)
@@ -552,17 +523,15 @@ const fetchLatestBuild = async (branch: string = 'main'): Promise<MintReleaseInf
                     html_url: commitData.html_url || `https://github.com/MenthaMC/Mint/commit/${commitData.sha}`
                 }
             } catch (commitError) {
-                console.warn(`获取提交信息失败:`, commitError)
+                logger.warn('获取提交信息失败:', commitError)
             }
             
-            // 查找JAR文件
             const jarAsset = release.assets?.find((asset: any) => 
                 asset.name.toLowerCase().endsWith('.jar') && 
                 !asset.name.toLowerCase().includes('sources') && 
                 !asset.name.toLowerCase().includes('javadoc')
             )
             
-            // 计算文件大小
             const totalSize = release.assets?.reduce((sum: number, asset: any) => sum + (asset.size || 0), 0) || 0
             const fileSize = totalSize > 0 ? `${(totalSize / 1024 / 1024).toFixed(1)} MB` : '大小未知'
             
@@ -583,125 +552,11 @@ const fetchLatestBuild = async (branch: string = 'main'): Promise<MintReleaseInf
             }
             
             return latestRelease
-        } else {
-            // 非主分支：尝试查找该分支对应的Release，如果没有则获取最新提交
-            try {
-                // 首先尝试查找分支对应的Release
-                const releasesResponse = await fetchWithFallback(`${api}/repos/MenthaMC/Mint/releases?per_page=50`)
-                const releases = await releasesResponse.json()
-                
-                // 查找目标分支的Release
-                const branchRelease = releases.find((release: any) => 
-                    release.target_commitish === branch || 
-                    release.tag_name.includes(branch) ||
-                    release.name?.includes(branch)
-                )
-                
-                if (branchRelease) {
-                    console.log(`找到分支 ${branch} 的Release:`, branchRelease.tag_name)
-                    
-                    // 查找JAR文件
-                    const jarAsset = branchRelease.assets?.find((asset: any) => 
-                        asset.name.toLowerCase().endsWith('.jar') && 
-                        !asset.name.toLowerCase().includes('sources') && 
-                        !asset.name.toLowerCase().includes('javadoc')
-                    )
-                    
-                    // 获取提交信息
-                    let commitInfo = undefined
-                    try {
-                        const commitResponse = await fetchWithFallback(`${api}/repos/MenthaMC/Mint/commits/${branchRelease.target_commitish || branch}`)
-                        const commitData = await commitResponse.json()
-                        commitInfo = {
-                            sha: commitData.sha?.substring(0, 7) || 'unknown',
-                            shortMessage: commitData.commit?.message?.split('\n')[0] || branchRelease.name || `版本 ${branchRelease.tag_name}`,
-                            author: {
-                                name: commitData.commit?.author?.name || 'MenthaMC Team',
-                                email: commitData.commit?.author?.email || '',
-                                avatar_url: commitData.author?.avatar_url || 'https://github.com/MenthaMC.png'
-                            },
-                            committer: {
-                                name: commitData.commit?.committer?.name || 'MenthaMC Team',
-                                email: commitData.commit?.committer?.email || '',
-                                date: commitData.commit?.committer?.date || branchRelease.published_at
-                            },
-                            message: commitData.commit?.message || branchRelease.body || `版本 ${branchRelease.tag_name} 发布`,
-                            html_url: commitData.html_url || `https://github.com/MenthaMC/Mint/commit/${commitData.sha}`
-                        }
-                    } catch (commitError) {
-                        console.warn(`获取分支Release提交信息失败:`, commitError)
-                    }
-                    
-                    const totalSize = branchRelease.assets?.reduce((sum: number, asset: any) => sum + (asset.size || 0), 0) || 0
-                    const fileSize = totalSize > 0 ? `${(totalSize / 1024 / 1024).toFixed(1)} MB` : '大小未知'
-                    
-                    return {
-                        version: branchRelease.tag_name?.replace(/^v/, '') || `${branch}-release`,
-                        buildNumber: '1',
-                        releaseDate: new Date(branchRelease.published_at || branchRelease.created_at).toLocaleDateString('zh-CN'),
-                        fileSize,
-                        downloadUrl: jarAsset?.browser_download_url || branchRelease.assets?.[0]?.browser_download_url || branchRelease.zipball_url,
-                        changelogUrl: branchRelease.html_url,
-                        assets: branchRelease.assets?.map((asset: any) => ({
-                            name: asset.name,
-                            size: asset.size || 0,
-                            downloadCount: asset.download_count || 0,
-                            browserDownloadUrl: asset.browser_download_url
-                        })) || [],
-                        commitInfo
-                    }
-                }
-            } catch (releaseError) {
-                console.warn(`查找分支 ${branch} 的Release失败，回退到提交模式:`, releaseError)
-            }
-            
-            // 如果没有找到Release，获取分支的最新提交
-            const commitsResponse = await fetchWithFallback(`${api}/repos/MenthaMC/Mint/commits?sha=${branch}&per_page=1`)
-            const commits = await commitsResponse.json()
-            
-            if (commits && commits.length > 0) {
-                const commit = commits[0]
-                const commitDate = new Date(commit.commit.committer.date)
-                const shortSha = commit.sha.substring(0, 7)
-                
-                const latestBuild: MintReleaseInfo = {
-                    version: `${branch}-${shortSha}`,
-                    buildNumber: '1',
-                    releaseDate: commitDate.toLocaleDateString('zh-CN'),
-                    fileSize: '约 15-20 MB',
-                    downloadUrl: `https://github.com/MenthaMC/Mint/archive/${commit.sha}.zip`,
-                    changelogUrl: commit.html_url,
-                    assets: [{
-                        name: `mint-${branch}-${shortSha}.zip`,
-                        size: 0,
-                        downloadCount: 0,
-                        browserDownloadUrl: `https://github.com/MenthaMC/Mint/archive/${commit.sha}.zip`
-                    }],
-                    commitInfo: {
-                        sha: shortSha,
-                        shortMessage: commit.commit.message.split('\n')[0],
-                        author: {
-                            name: commit.commit.author.name,
-                            email: commit.commit.author.email,
-                            avatar_url: commit.author?.avatar_url || 'https://github.com/MenthaMC.png'
-                        },
-                        committer: {
-                            name: commit.commit.committer.name,
-                            email: commit.commit.committer.email,
-                            date: commit.commit.committer.date
-                        },
-                        message: commit.commit.message,
-                        html_url: commit.html_url
-                    }
-                }
-                
-                return latestBuild
-            }
         }
         
         return null
     } catch (error) {
-        console.error('获取最新构建失败:', error)
+        logger.error('获取最新构建失败:', error)
         return null
     }
 }
@@ -709,18 +564,15 @@ const fetchLatestBuild = async (branch: string = 'main'): Promise<MintReleaseInf
 // 获取版本历史
 const fetchReleases = async (limit: number = 100, branch: string = 'main') => {
     try {
-        console.log('开始获取版本历史，分支:', branch, '限制数量:', limit)
+        logger.debug('开始获取版本历史，分支:', branch, '限制数量:', limit)
         
         if (branch === 'main' || branch === 'master') {
-            // 主分支：获取所有GitHub Releases
             const response = await fetchWithFallback(`${api}/repos/MenthaMC/Mint/releases?per_page=100`)
             const githubReleases = await response.json()
             
             if (githubReleases && githubReleases.length > 0) {
-                // 转换GitHub Release数据为我们的格式
                 const releaseList: MintReleaseInfo[] = await Promise.all(
                     githubReleases.map(async (release: any, index: number) => {
-                        // 获取提交信息
                         let commitInfo = undefined
                         try {
                             const commitResponse = await fetchWithFallback(`${api}/repos/MenthaMC/Mint/commits/${release.target_commitish || 'main'}`)
@@ -742,10 +594,9 @@ const fetchReleases = async (limit: number = 100, branch: string = 'main') => {
                                 html_url: commitData.html_url || `https://github.com/MenthaMC/Mint/commit/${commitData.sha}`
                             }
                         } catch (commitError) {
-                            console.warn(`获取提交信息失败:`, commitError)
+                            logger.warn('获取提交信息失败:', commitError)
                         }
                         
-                        // 计算文件大小
                         const totalSize = release.assets?.reduce((sum: number, asset: any) => sum + (asset.size || 0), 0) || 0
                         const fileSize = totalSize > 0 ? `${(totalSize / 1024 / 1024).toFixed(1)} MB` : '大小未知'
                         
@@ -768,18 +619,16 @@ const fetchReleases = async (limit: number = 100, branch: string = 'main') => {
                 )
                 
                 allReleases.value = releaseList
-                console.log('获取到的版本数据:', allReleases.value)
+                logger.debug('获取到的版本数据:', allReleases.value)
             } else {
-                console.warn('没有获取到任何发布版本，创建模拟数据')
+                logger.warn('没有获取到任何发布版本，创建模拟数据')
                 allReleases.value = createMockReleases(branch, limit)
             }
         } else {
-            // 非主分支：获取分支的所有提交历史作为构建信息
             const commitsResponse = await fetchWithFallback(`${api}/repos/MenthaMC/Mint/commits?sha=${branch}&per_page=100`)
             const commits = await commitsResponse.json()
             
             if (commits && commits.length > 0) {
-                // 将提交转换为构建信息格式
                 const buildList: MintReleaseInfo[] = commits.map((commit: any, index: number) => {
                     const commitDate = new Date(commit.commit.committer.date)
                     const shortSha = commit.sha.substring(0, 7)
@@ -817,18 +666,18 @@ const fetchReleases = async (limit: number = 100, branch: string = 'main') => {
                 })
                 
                 allReleases.value = buildList
-                console.log(`获取到分支 ${branch} 的构建数据:`, allReleases.value)
+                logger.debug(`获取到分支 ${branch} 的构建数据:`, allReleases.value)
             } else {
-                console.warn(`分支 ${branch} 没有提交记录，创建模拟数据`)
+                logger.warn(`分支 ${branch} 没有提交记录，创建模拟数据`)
+                logger.warn(`分支 ${branch} 没有提交记录，创建模拟数据`)
                 allReleases.value = createMockReleases(branch, limit)
             }
         }
         
     } catch (error) {
-        console.error('获取版本历史失败:', error)
+        logger.error('获取版本历史失败:', error)
         allReleases.value = createMockReleases(branch, limit)
     } finally {
-        // 应用分页
         applyPagination()
     }
 }
@@ -839,7 +688,7 @@ const createMockReleases = (branch: string, limit: number): MintReleaseInfo[] =>
     const now = new Date()
     
     for (let i = 0; i < Math.min(limit, 3); i++) {
-        const releaseDate = new Date(now.getTime() - i * 7 * 24 * 60 * 60 * 1000) // 每周一个版本
+        const releaseDate = new Date(now.getTime() - i * 7 * 24 * 60 * 60 * 1000)
         const version = branch === 'main' ? `1.${3 - i}.0` : `${branch}-${3 - i}`
         
         mockReleases.push({
@@ -851,7 +700,7 @@ const createMockReleases = (branch: string, limit: number): MintReleaseInfo[] =>
             changelogUrl: `https://github.com/MenthaMC/Mint/releases/tag/v${version}`,
             assets: [{
                 name: `mint-${version}.jar`,
-                size: 16777216, // 16MB
+                size: 16777216,
                 downloadCount: Math.floor(Math.random() * 1000) + 100,
                 browserDownloadUrl: `https://github.com/MenthaMC/Mint/releases/download/v${version}/mint-${version}.jar`
             }],
@@ -883,7 +732,7 @@ const createMockReleases = (branch: string, limit: number): MintReleaseInfo[] =>
 watch(() => props.selectedBranch, (newBranch) => {
     if (newBranch && newBranch !== currentBranch.value) {
         currentBranch.value = newBranch
-        pagination.value.page = 1 // 重置到第一页
+        pagination.value.page = 1
         isLoading.value = true
         fetchReleases(100, newBranch).finally(() => {
             isLoading.value = false
@@ -894,9 +743,7 @@ watch(() => props.selectedBranch, (newBranch) => {
 // 下载版本
 const downloadRelease = async (release: MintReleaseInfo) => {
     try {
-        // 优先使用release中的下载链接
         if (release.downloadUrl) {
-            // 检查是否是JAR文件
             if (release.downloadUrl.toLowerCase().endsWith('.jar')) {
                 const link = document.createElement('a')
                 link.href = release.downloadUrl
@@ -909,7 +756,6 @@ const downloadRelease = async (release: MintReleaseInfo) => {
             }
         }
         
-        // 如果不是JAR文件，尝试获取当前分支的最新JAR
         const branchJarUrl = await getBranchLatestJar(currentBranch.value)
         if (branchJarUrl) {
             const link = document.createElement('a')
@@ -922,7 +768,6 @@ const downloadRelease = async (release: MintReleaseInfo) => {
             return
         }
         
-        // 最后回退到原始下载链接
         if (release.downloadUrl) {
             const link = document.createElement('a')
             link.href = release.downloadUrl
@@ -933,8 +778,7 @@ const downloadRelease = async (release: MintReleaseInfo) => {
             document.body.removeChild(link)
         }
     } catch (error) {
-        console.error('下载失败:', error)
-        // 错误回退
+        logger.error('下载失败:', error)
         if (release.downloadUrl) {
             const link = document.createElement('a')
             link.href = release.downloadUrl
@@ -991,12 +835,12 @@ const getAndEmitLatestBuild = async (branch: string) => {
     try {
         const latestBuild = await fetchLatestBuild(branch)
         if (latestBuild) {
-            console.log(`获取到分支 ${branch} 的最新构建:`, latestBuild)
+            logger.debug(`获取到分支 ${branch} 的最新构建:`, latestBuild)
             emit('latestBuildReady', latestBuild)
             return latestBuild
         }
     } catch (error) {
-        console.error(`获取分支 ${branch} 的最新构建失败:`, error)
+        logger.error(`获取分支 ${branch} 的最新构建失败:`, error)
     }
     return null
 }
@@ -1004,10 +848,9 @@ const getAndEmitLatestBuild = async (branch: string) => {
 // 获取分支对应的最新JAR下载链接
 const getBranchLatestJar = async (branch: string): Promise<string | null> => {
     try {
-        console.log(`获取分支 ${branch} 的最新JAR...`)
+        logger.debug(`获取分支 ${branch} 的最新JAR...`)
         
         if (branch === 'main' || branch === 'master') {
-            // 主分支：获取最新Release的JAR
             const response = await fetchWithFallback(`${api}/repos/MenthaMC/Mint/releases/latest`)
             const release = await response.json()
             
@@ -1021,7 +864,6 @@ const getBranchLatestJar = async (branch: string): Promise<string | null> => {
                 return jarAsset.browser_download_url
             }
         } else {
-            // 非主分支：查找分支对应的Release
             const releasesResponse = await fetchWithFallback(`${api}/repos/MenthaMC/Mint/releases?per_page=50`)
             const releases = await releasesResponse.json()
             
@@ -1046,28 +888,20 @@ const getBranchLatestJar = async (branch: string): Promise<string | null> => {
         
         return null
     } catch (error) {
-        console.error(`获取分支 ${branch} 的JAR失败:`, error)
+        logger.error(`获取分支 ${branch} 的JAR失败:`, error)
         return null
     }
 }
 
 onMounted(async () => {
     try {
-        // 获取版本历史
         await fetchReleases(100, currentBranch.value)
-        
-        // 获取并发送最新构建信息
         await getAndEmitLatestBuild(currentBranch.value)
-        
-        // 添加点击外部关闭下拉菜单的事件监听
         document.addEventListener('click', handleClickOutside)
     } finally {
         isLoading.value = false
     }
 })
-
-// 组件卸载时移除事件监听器
-import { onUnmounted } from 'vue'
 
 onUnmounted(() => {
     document.removeEventListener('click', handleClickOutside)
@@ -1087,7 +921,6 @@ onUnmounted(() => {
     padding: 0 24px;
 }
 
-/* 标题区域 */
 .section-header {
     text-align: center;
     margin-bottom: 48px;
@@ -1110,7 +943,6 @@ onUnmounted(() => {
     margin: 0;
 }
 
-/* 分页控制栏 */
 .pagination-controls {
     display: flex;
     justify-content: space-between;
@@ -1134,7 +966,6 @@ onUnmounted(() => {
     font-weight: 500;
 }
 
-/* 自定义下拉菜单 */
 .custom-select {
     position: relative;
     min-width: 80px;
@@ -1220,7 +1051,6 @@ onUnmounted(() => {
     font-weight: 500;
 }
 
-/* 加载状态 */
 .loading-container {
     display: flex;
     flex-direction: column;
@@ -1248,7 +1078,6 @@ onUnmounted(() => {
     font-size: 14px;
 }
 
-/* 时间线 */
 .history-timeline {
     position: relative;
 }
@@ -1265,7 +1094,6 @@ onUnmounted(() => {
     box-shadow: 0 0 20px rgba(16, 185, 129, 0.1);
 }
 
-/* 时间线节点 */
 .timeline-node {
     position: relative;
     flex-shrink: 0;
@@ -1298,7 +1126,6 @@ onUnmounted(() => {
     margin-top: 8px;
 }
 
-/* 版本卡片 */
 .version-card {
     flex: 1;
     background: rgba(255, 255, 255, 0.05);
@@ -1364,14 +1191,12 @@ onUnmounted(() => {
     font-weight: 500;
 }
 
-/* 卡片内容 */
 .card-content {
     display: flex;
     flex-direction: column;
     gap: 20px;
 }
 
-/* 提交信息样式 */
 .commit-info {
     padding: 16px;
     background: rgba(255, 255, 255, 0.03);
@@ -1514,7 +1339,6 @@ onUnmounted(() => {
     font-weight: 600;
 }
 
-/* 操作按钮 */
 .card-actions {
     display: flex;
     gap: 12px;
@@ -1563,7 +1387,6 @@ onUnmounted(() => {
     transform: translateY(-1px);
 }
 
-/* 分页导航 */
 .pagination-nav {
     margin-top: 40px;
     padding: 24px;
@@ -1646,8 +1469,6 @@ onUnmounted(() => {
     opacity: 0.6;
 }
 
-
-/* 分页统计信息 */
 .pagination-summary {
     text-align: center;
     margin-top: 24px;
@@ -1664,7 +1485,6 @@ onUnmounted(() => {
     margin: 0;
 }
 
-/* 响应式设计 */
 @media (max-width: 768px) {
     .container {
         padding: 0 16px;

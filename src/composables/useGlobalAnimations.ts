@@ -5,7 +5,7 @@ export function useGlobalAnimations() {
     const { setupScrollAnimations, addHoverAnimations, addClickAnimations } = usePageTransition()
     let scrollObserver: IntersectionObserver | null = null
     let ticking = false
-    let animationFrameId: number | null = null
+    // let animationFrameId: number | null = null // 暂时不需要
 
     /**
      * 初始化全局动画
@@ -67,7 +67,7 @@ export function useGlobalAnimations() {
             if (!ticking) {
                 requestAnimationFrame(() => {
                     // 滚动时的性能优化
-                    const scrollY = window.scrollY
+                    // const scrollY = window.scrollY // 暂时不需要
                     const elements = document.querySelectorAll('[data-scroll-animate]')
                     
                     elements.forEach(element => {
@@ -102,7 +102,7 @@ export function useGlobalAnimations() {
         // 减少动画在低性能设备上的影响
         const isLowPerformance = () => {
             return navigator.hardwareConcurrency <= 2 || 
-                   (navigator as any).deviceMemory <= 2 ||
+                   (navigator as Navigator & { deviceMemory?: number }).deviceMemory <= 2 ||
                    window.matchMedia('(prefers-reduced-motion: reduce)').matches
         }
 

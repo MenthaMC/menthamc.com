@@ -93,7 +93,7 @@ export class ErrorHandler {
     try {
       // 这里可以集成第三方错误监控服务
       // 例如 Sentry, LogRocket 等
-      console.log('报告错误到监控服务:', error)
+      logger.debug('报告错误到监控服务:', error)
     } catch (reportError) {
       logger.warn('错误报告失败', reportError)
     }

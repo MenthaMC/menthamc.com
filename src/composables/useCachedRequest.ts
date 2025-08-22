@@ -1,9 +1,9 @@
 import { ref, computed, type Ref } from 'vue';
 import { cacheFirstRequest, type RequestOptions, type CacheFirstResponse } from '@/services/cache-first-request.service';
 
-export interface UseCachedRequestOptions extends Omit<RequestOptions, 'url'> {
+export interface UseCachedRequestOptions<T = unknown> extends Omit<RequestOptions, 'url'> {
   immediate?: boolean; // 是否立即执行
-  onSuccess?: (data: any, fromCache: boolean) => void;
+  onSuccess?: (data: T, fromCache: boolean) => void;
   onError?: (error: Error) => void;
 }
 
@@ -21,7 +21,7 @@ export interface UseCachedRequestReturn<T> {
 /**
  * Vue组合式函数：缓存优先的请求
  */
-export function useCachedRequest<T = any>(
+export function useCachedRequest<T = unknown>(
   cacheKey: string,
   url: string,
   options: UseCachedRequestOptions = {}
@@ -126,7 +126,7 @@ export function useCachedRequest<T = any>(
 /**
  * 专门用于列表数据的缓存请求
  */
-export function useCachedList<T = any>(
+export function useCachedList<T = unknown>(
   cacheKey: string,
   url: string,
   options: UseCachedRequestOptions & {
@@ -180,10 +180,19 @@ export function useCachedList<T = any>(
 /**
  * 用于分页数据的缓存请求
  */
-export function useCachedPagination<T = any>(
+export function useCachedPagination<T = unknown>(
   baseCacheKey: string,
   baseUrl: string,
-  options: UseCachedRequestOptions & {
+  options: UseCachedRequestOptions<{
+    items: T[];
+    pagination: {
+      page: number;
+      totalPages: number;
+      totalItems: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+  }> & {
     pageSize?: number;
   } = {}
 ) {

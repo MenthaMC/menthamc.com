@@ -1,4 +1,5 @@
 import { nextTick, ref } from 'vue'
+import { logger } from '../utils/logger'
 
 // 动画配置接口
 interface AnimationConfig {
@@ -71,7 +72,7 @@ export function useAnimation() {
      */
     const createTimeline = (config: Partial<AnimationConfig> = {}) => {
         // 使用config参数避免未使用警告
-        console.log('Timeline created with config:', config)
+        logger.debug('Timeline created with config', config)
         
         // 简单的时间线实现
         const timeline = {

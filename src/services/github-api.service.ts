@@ -1,5 +1,6 @@
 import { api } from '@/main'
-import { cacheFirstRequest, createCacheKey, type CacheFirstResponse } from './cache-first-request.service'
+import { createCacheKey } from './cache-first-request.service'
+import { logger } from '@/utils/logger'
 
 export interface GitHubConfig {
   baseUrl?: string;
@@ -98,7 +99,7 @@ export class GitHubApiService {
       const fullUrl = path.startsWith('http') ? path : `${baseUrl}/${path.replace(/^\//, '')}`;
       
       try {
-        console.log(`尝试API端点 ${i + 1}/${this.API_ENDPOINTS.length}: ${baseUrl}`);
+        logger.debug(`尝试API端点 ${i + 1}/${this.API_ENDPOINTS.length}: ${baseUrl}`);
         
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -114,13 +115,13 @@ export class GitHubApiService {
         clearTimeout(timeoutId);
         
         if (response.ok) {
-          console.log(`API端点 ${i + 1} 调用成功: ${baseUrl}`);
+          logger.debug(`API端点 ${i + 1} 调用成功: ${baseUrl}`);
           return response;
         }
         
         const error = new Error(`API端点 ${i + 1} 响应失败: ${response.status} ${response.statusText}`);
         errors.push(error);
-        console.warn(error.message);
+        logger.warn(error.message);
         
         // 如果是速率限制，等待一下再尝试下一个端点
         if (response.status === 429) {
@@ -130,7 +131,7 @@ export class GitHubApiService {
       } catch (error) {
         const apiError = new Error(`API端点 ${i + 1} 请求失败: ${error instanceof Error ? error.message : String(error)}`);
         errors.push(apiError);
-        console.warn(apiError.message);
+        logger.warn(apiError.message);
         
         // 在尝试下一个端点前短暂延迟
         if (i < this.API_ENDPOINTS.length - 1) {
@@ -180,7 +181,6 @@ export class GitHubApiService {
   private async fetchWithSmartFallback(path: string, timeout: number = 8000): Promise<Response> {
     // 首先尝试最佳端点
     const bestEndpoint = this.getBestEndpoint();
-    const bestIndex = this.API_ENDPOINTS.indexOf(bestEndpoint);
     
     // 重新排序端点，将最佳端点放在前面
     const orderedEndpoints = [
@@ -195,7 +195,7 @@ export class GitHubApiService {
       const fullUrl = path.startsWith('http') ? path : `${baseUrl}/${path.replace(/^\//, '')}`;
       
       try {
-        console.log(`尝试API端点 ${i + 1}/${orderedEndpoints.length}: ${baseUrl} ${i === 0 ? '(最佳)' : ''}`);
+        logger.debug(`尝试API端点 ${i + 1}/${orderedEndpoints.length}: ${baseUrl} ${i === 0 ? '(最佳)' : ''}`);
         
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -211,7 +211,7 @@ export class GitHubApiService {
         clearTimeout(timeoutId);
         
         if (response.ok) {
-          console.log(`API端点调用成功: ${baseUrl}`);
+          logger.debug(`API端点调用成功: ${baseUrl}`);
           this.updateApiStats(baseUrl, true);
           return response;
         }
@@ -219,7 +219,7 @@ export class GitHubApiService {
         this.updateApiStats(baseUrl, false);
         const error = new Error(`API端点响应失败: ${response.status} ${response.statusText}`);
         errors.push(error);
-        console.warn(error.message);
+        logger.warn(error.message);
         
         // 如果是速率限制，等待一下再尝试下一个端点
         if (response.status === 429) {
@@ -230,7 +230,7 @@ export class GitHubApiService {
         this.updateApiStats(baseUrl, false);
         const apiError = new Error(`API端点请求失败: ${error instanceof Error ? error.message : String(error)}`);
         errors.push(apiError);
-        console.warn(apiError.message);
+        logger.warn(apiError.message);
         
         // 在尝试下一个端点前短暂延迟
         if (i < orderedEndpoints.length - 1) {
@@ -295,11 +295,11 @@ export class GitHubApiService {
       const cachedData = globalCache.get<T>(cacheKey);
       
       if (cachedData) {
-        console.log(`缓存命中: ${cacheKey}`);
+        logger.debug(`缓存命中: ${cacheKey}`);
         return cachedData;
       }
       
-      console.log(`缓存未命中，使用智能备用API: ${cacheKey}`);
+      logger.debug(`缓存未命中，使用智能备用API: ${cacheKey}`);
       
       // 如果缓存未命中，使用智能备用API
       // 提取API路径（移除baseUrl前缀）
@@ -309,23 +309,23 @@ export class GitHubApiService {
       
       // 手动更新缓存
       globalCache.set(cacheKey, data, cacheTtl);
-      console.log(`缓存更新: ${cacheKey}`);
+      logger.debug(`缓存更新: ${cacheKey}`);
       
       return data;
     } catch (error) {
-      console.error(`API请求失败: ${apiPath}`, error);
+      logger.error(`API请求失败: ${apiPath}`, error);
       
       // 尝试返回过期的缓存数据作为最后的回退
       try {
         const { globalCache } = await import('./cache.service');
-        const cache = (globalCache as any).cache;
+        const cache = (globalCache as { cache: Map<string, unknown> }).cache;
         const item = cache.get(cacheKey);
         if (item && item.data) {
-          console.warn(`所有API都失败，返回过期缓存数据: ${cacheKey}`);
+          logger.warn(`所有API都失败，返回过期缓存数据: ${cacheKey}`);
           return item.data;
         }
       } catch (cacheError) {
-        console.error('获取过期缓存数据也失败:', cacheError);
+        logger.error('获取过期缓存数据也失败:', cacheError);
       }
       
       throw error;

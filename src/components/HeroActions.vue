@@ -25,11 +25,16 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import type { HeroActionsProps } from '../types'
+import { logger } from '@/utils/logger'
 
 const { t } = useI18n()
 
 // Props定义
+interface HeroActionsProps {
+    onDownload?: () => void
+    onLearnMore?: () => void
+}
+
 const props = withDefaults(defineProps<HeroActionsProps>(), {
     onDownload: undefined,
     onLearnMore: undefined,
@@ -43,7 +48,7 @@ const emit = defineEmits<{
 
 // 事件处理函数
 const handleDownload = () => {
-    console.log(t('hero.actions.download'))
+    logger.debug(t('hero.actions.download'))
     emit('download')
     props.onDownload?.()
     // 跳转到下载页面
@@ -51,7 +56,7 @@ const handleDownload = () => {
 }
 
 const handleLearnMore = () => {
-    console.log(t('hero.actions.learnMore'))
+    logger.debug(t('hero.actions.learnMore'))
     emit('learnMore')
     props.onLearnMore?.()
     // 滚动到特性展示区域

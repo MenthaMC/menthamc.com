@@ -3,7 +3,7 @@ import { useAnimation } from './useAnimation'
 
 export function usePageTransition() {
     const isTransitioning = ref(false)
-    const { fadeIn, staggerAnimation } = useAnimation()
+    const { staggerAnimation } = useAnimation()
 
     /**
      * 页面进入动画

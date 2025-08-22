@@ -1,4 +1,5 @@
 import { mintProjectService } from '@/services/mint-project.service'
+import { logger } from '@/utils/logger'
 import type { MintReleaseInfo, MintProjectInfo } from '@/services/mint-project.service'
 
 /**
@@ -24,7 +25,7 @@ export async function getLatestRelease(): Promise<{
       }
     }
   } catch (error) {
-    console.error('API: 获取最新版本失败', error)
+    logger.error('API: 获取最新版本失败', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : '未知错误'
@@ -48,7 +49,7 @@ export async function getAllReleases(limit: number = 10): Promise<{
       data: releases
     }
   } catch (error) {
-    console.error('API: 获取所有版本失败', error)
+    logger.error('API: 获取所有版本失败', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : '未知错误'
@@ -79,7 +80,7 @@ export async function getProjectInfo(): Promise<{
       }
     }
   } catch (error) {
-    console.error('API: 获取项目信息失败', error)
+    logger.error('API: 获取项目信息失败', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : '未知错误'
@@ -103,7 +104,7 @@ export async function getDownloadStats(): Promise<{
       data: stats
     }
   } catch (error) {
-    console.error('API: 获取下载统计失败', error)
+    logger.error('API: 获取下载统计失败', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : '未知错误'
@@ -126,7 +127,7 @@ export async function clearCache(): Promise<{
       message: '缓存已清除'
     }
   } catch (error) {
-    console.error('API: 清除缓存失败', error)
+    logger.error('API: 清除缓存失败', error)
     return {
       success: false,
       message: error instanceof Error ? error.message : '清除缓存失败'
@@ -155,7 +156,7 @@ export async function getServiceStatus(): Promise<{
       data: status
     }
   } catch (error) {
-    console.error('API: 获取服务状态失败', error)
+    logger.error('API: 获取服务状态失败', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : '未知错误'
